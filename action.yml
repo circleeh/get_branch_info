@@ -1,0 +1,8 @@
+name: 'Get Release Branches'
+description: 'Determines release branches from .releaserc.yaml or GitHub default branch'
+outputs:
+  is-release-branch:
+    description: 'Branch conditions formatted for GitHub workflow expressions'
+runs:
+  using: 'node20'
+  main: 'lib/index.js'

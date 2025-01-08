@@ -1,0 +1,25 @@
+name: Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm test -- --coverage --coverageReporters json-summary
+      - name: Jest Coverage Comment
+        uses: MishaKav/jest-coverage-comment@main
+        if: github.event_name == 'pull_request'
+        with:
+          coverage-path: ./coverage/coverage-summary.json
+          title: 'Test Coverage Report'
