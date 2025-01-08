@@ -5,4 +5,4 @@ outputs:
     description: 'Branch conditions formatted for GitHub workflow expressions'
 runs:
   using: 'node20'
-  main: 'dist/src/index.js'
+  main: 'dist/index.js'
