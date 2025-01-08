@@ -1,0 +1,60 @@
+---
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      # Basic structured document linting
+      - id: check-json
+      - id: check-yaml
+      - id: check-toml
+      - id: check-xml
+      - id: pretty-format-json
+        args: [--autofix]
+      - id: requirements-txt-fixer
+      # Basic file linting
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-shebang-scripts-are-executable
+      - id: check-merge-conflict
+      # Security linting
+      - id: detect-aws-credentials
+        args: [--allow-missing-credentials]
+      - id: detect-private-key
+      # Git / os file linting
+      - id: no-commit-to-branch
+        args: [--branch, master, --branch, main, --branch, beta]
+      - id: check-symlinks
+      - id: fix-byte-order-marker
+      - id: mixed-line-ending
+
+  - repo: https://github.com/streetsidesoftware/cspell-cli
+    rev: v8.17.0
+    hooks:
+      - id: cspell
+        name: check cspell
+
+  - repo: https://github.com/editorconfig-checker/editorconfig-checker.python
+    rev: '3.0.3'
+    hooks:
+      - id: editorconfig-checker
+        name: check .editorconfig rules
+        alias: ec
+
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.43.0
+    hooks:
+      - id: markdownlint
+        name: check markdownlint
+        exclude: "(^CHANGELOG.md$)"
+
+  - repo: https://github.com/gitleaks/gitleaks.git
+    rev: v8.22.1
+    hooks:
+      - id: gitleaks
+        name: check gitleaks
+
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.6
+    hooks:
+      - id: actionlint
+        name: check actionlint
