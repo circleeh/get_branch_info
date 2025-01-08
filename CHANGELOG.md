@@ -1,3 +1,9 @@
+## [1.0.0-alpha.3](https://github.com/circleeh/get_branch_info/compare/v1.0.0-alpha.2...v1.0.0-alpha.3) (2025-01-08)
+
+### Bug Fixes
+
+* 🐛 Compile action with ncc ([b23dd91](https://github.com/circleeh/get_branch_info/commit/b23dd91ecc4ff393f14a36d25f0e5cb0b40d5234))
+
 ## [1.0.0-alpha.2](https://github.com/circleeh/get_branch_info/compare/v1.0.0-alpha.1...v1.0.0-alpha.2) (2025-01-08)
 
 ### Bug Fixes
