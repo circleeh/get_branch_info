@@ -18,8 +18,9 @@ jobs:
       - run: npm ci
       - run: npm test -- --coverage --coverageReporters json-summary
       - name: Jest Coverage Comment
-        uses: MishaKav/jest-coverage-comment@main
+        uses: MishaKav/jest-coverage-comment@v1
         if: github.event_name == 'pull_request'
         with:
           coverage-path: ./coverage/coverage-summary.json
           title: 'Test Coverage Report'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
