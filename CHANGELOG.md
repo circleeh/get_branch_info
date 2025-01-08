@@ -1,3 +1,9 @@
+## [1.0.0-alpha.2](https://github.com/circleeh/get_branch_info/compare/v1.0.0-alpha.1...v1.0.0-alpha.2) (2025-01-08)
+
+### Bug Fixes
+
+* **action:** 🚚 Update main entry point path ([ed7c769](https://github.com/circleeh/get_branch_info/commit/ed7c7693a4fc6b65c6d2d73f2a1b2047ae3b04db))
+
 ## 1.0.0-alpha.1 (2025-01-08)
 
 ### Features
