@@ -50,70 +50,57 @@ const yaml = __importStar(__nccwpck_require__(4281));
 const fs_1 = __nccwpck_require__(9896);
 const path_1 = __importDefault(__nccwpck_require__(6928));
 async function run() {
-    var _a, _b;
+    var _a;
     try {
-        let branchCondition;
-        // Try both .releaserc.yaml and .releaserc.json
-        const configPaths = [
-            path_1.default.join(process.cwd(), '.releaserc.yaml'),
-            path_1.default.join(process.cwd(), '.releaserc.yml'),
-            path_1.default.join(process.cwd(), '.releaserc.json')
+        // More explicitly handle PR vs direct push cases
+        const currentBranch = github.context.payload.pull_request
+            ? github.context.payload.pull_request.head.ref // PR case (equivalent to GITHUB_HEAD_REF)
+            : github.context.ref.replace('refs/heads/', ''); // Direct push case (equivalent to GITHUB_REF)
+        core.debug(`GitHub Ref: ${github.context.ref}`);
+        core.debug(`Pull Request Head Ref: ${(_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.head.ref}`);
+        core.debug(`Current branch: ${currentBranch}`);
+        // Check all possible .releaserc config files
+        const possibleConfigs = [
+            '.releaserc',
+            '.releaserc.json',
+            '.releaserc.yaml',
+            '.releaserc.yml',
+            '.releaserc.js',
+            '.releaserc.cjs',
+            'release.config.js',
+            'release.config.cjs'
         ];
-        // Try to read config files
-        let config = null;
-        for (const configPath of configPaths) {
+        for (const configFile of possibleConfigs) {
+            const configPath = path_1.default.join(process.cwd(), configFile);
             try {
-                const fileContents = await fs_1.promises.readFile(configPath, 'utf8');
-                config = configPath.endsWith('.json')
-                    ? JSON.parse(fileContents)
-                    : yaml.load(fileContents);
-                break;
+                let config;
+                if (configFile.endsWith('.js') || configFile.endsWith('.cjs')) {
+                    // Handle JavaScript config files
+                    config = require(configPath);
+                }
+                else {
+                    // Handle JSON and YAML config files
+                    const fileContents = await fs_1.promises.readFile(configPath, 'utf8');
+                    config = configFile.endsWith('.json') ? JSON.parse(fileContents) : yaml.load(fileContents);
+                }
+                if (config === null || config === void 0 ? void 0 : config.branches) {
+                    const releaseBranches = config.branches
+                        .filter(Boolean)
+                        .map((branch) => typeof branch === 'string' ? branch : branch.name)
+                        .filter(Boolean);
+                    const isReleaseBranch = releaseBranches.includes(currentBranch);
+                    core.setOutput('is-release-branch', isReleaseBranch);
+                    core.debug(`Is release branch: ${isReleaseBranch}`);
+                    return; // Exit after finding and processing the first config file
+                }
             }
             catch (error) {
-                // Continue to next config file
+                // Continue to next config file if this one doesn't exist or can't be read
                 continue;
             }
         }
-        if ((config === null || config === void 0 ? void 0 : config.branches) && config.branches.length > 0) {
-            // Filter out prerelease branches as they're handled differently
-            const releaseBranches = config.branches
-                .filter(branch => {
-                if (typeof branch === 'string')
-                    return true;
-                return !branch.prerelease;
-            })
-                .map(branch => typeof branch === 'string' ? branch : branch.name)
-                .filter(Boolean);
-            // If no release branches found, use semantic-release defaults
-            if (releaseBranches.length === 0) {
-                releaseBranches.push('master', 'main');
-            }
-            const branchConditions = releaseBranches
-                .map(branch => `github.ref == 'refs/heads/${branch}'`);
-            // Add maintenance branch patterns if they exist
-            const maintenancePatterns = config.branches
-                .filter(branch => typeof branch === 'string' && (branch.includes('.x') || branch.includes('.X')));
-            if (maintenancePatterns.length > 0) {
-                core.info(`Found maintenance branch patterns: ${maintenancePatterns.join(', ')}`);
-            }
-            branchCondition = branchConditions.join(' || ');
-        }
-        else {
-            // If no config found, use default branch
-            const token = process.env.GITHUB_TOKEN;
-            if (!token) {
-                core.setFailed('GITHUB_TOKEN is required');
-                return;
-            }
-            const octokit = github.getOctokit(token);
-            const [owner, repo] = (_b = (_a = process.env.GITHUB_REPOSITORY) === null || _a === void 0 ? void 0 : _a.split('/')) !== null && _b !== void 0 ? _b : [];
-            const { data: repository } = await octokit.rest.repos.get({
-                owner,
-                repo,
-            });
-            branchCondition = `github.ref == 'refs/heads/${repository.default_branch}'`;
-        }
-        core.setOutput('is-release-branch', branchCondition);
+        // If no valid config was found
+        core.setOutput('is-release-branch', false);
     }
     catch (error) {
         if (error instanceof Error) {
@@ -703,8 +690,8 @@ class OidcClient {
             const res = yield httpclient
                 .getJson(id_token_url)
                 .catch(error => {
-                throw new Error(`Failed to get ID Token. \n
-        Error Code : ${error.statusCode}\n
+                throw new Error(`Failed to get ID Token. \n 
+        Error Code : ${error.statusCode}\n 
         Error Message: ${error.message}`);
             });
             const id_token = (_a = res.result) === null || _a === void 0 ? void 0 : _a.value;
@@ -36015,7 +36002,7 @@ module.exports = parseParams
 /************************************************************************/
 /******/ 	// The module cache
 /******/ 	var __webpack_module_cache__ = {};
-/******/
+/******/ 	
 /******/ 	// The require function
 /******/ 	function __nccwpck_require__(moduleId) {
 /******/ 		// Check if module is in cache
@@ -36029,7 +36016,7 @@ module.exports = parseParams
 /******/ 			// no module.loaded needed
 /******/ 			exports: {}
 /******/ 		};
-/******/
+/******/ 	
 /******/ 		// Execute the module function
 /******/ 		var threw = true;
 /******/ 		try {
@@ -36038,23 +36025,23 @@ module.exports = parseParams
 /******/ 		} finally {
 /******/ 			if(threw) delete __webpack_module_cache__[moduleId];
 /******/ 		}
-/******/
+/******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
-/******/
+/******/ 	
 /************************************************************************/
 /******/ 	/* webpack/runtime/compat */
-/******/
+/******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
-/******/
+/******/ 	
 /************************************************************************/
-/******/
+/******/ 	
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
 /******/ 	var __webpack_exports__ = __nccwpck_require__(4584);
 /******/ 	module.exports = __webpack_exports__;
-/******/
+/******/ 	
 /******/ })()
 ;

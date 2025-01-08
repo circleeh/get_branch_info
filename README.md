@@ -1,16 +1,24 @@
-# circleeh/get_branch_info
+# Get Release Branch Info
 
-A GitHub Action that helps determine valid release branches based on
-semantic-release configuration.
+A GitHub Action that determines if the current branch is configured as a release
+branch in semantic-release configuration.
+
+- [Features](#features)
+- [Usage](#usage)
+- [Outputs](#outputs)
+- [Configuration](#configuration)
+- [Examples](#examples)
+  - [Basic Usage with Default Branch](#basic-usage-with-default-branch)
+  - [Pull Request Workflow](#pull-request-workflow)
+- [Requirements](#requirements)
 
 ## Features
 
-- Reads branch configuration from `.releaserc.yaml`, `.releaserc.yml`, or
-  `.releaserc.json`
-- Automatically detects release branches from semantic-release configuration
-- Falls back to repository default branch if no configuration is found
-- Supports maintenance branch patterns (e.g., `1.x`, `2.X`)
-- Returns branch conditions suitable for GitHub Actions workflow conditions
+- Reads branch configuration from semantic-release config files (`.releaserc.*`,
+  `release.config.*`)
+- Supports multiple config formats (YAML, JSON, JavaScript)
+- Handles both direct pushes and pull requests
+- Returns a boolean indicating if the current branch is a release branch
 
 ## Usage
 
@@ -23,20 +31,31 @@ Add this action to your workflow:
   env:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-- name: Use Branch Conditions
-  if: ${{ steps.branch-info.outputs.is-release-branch }}
+- name: Use Branch Info
+  if: ${{ steps.branch-info.outputs.is-release-branch == 'true' }}
   run: echo "This is running on a release branch"
 ```
 
 ## Outputs
 
-| Output     | Description                                                                                    |
-| ---------- | ---------------------------------------------------------------------------------------------- |
-| `is-release-branch` | A condition string for use in GitHub Actions workflow that matches configured release branches |
+| Output     | Description                                                       |
+| ---------- | ----------------------------------------------------------------- |
+| `is-release-branch` | Boolean indicating if current branch is a release branch |
 
 ## Configuration
 
 The action reads branch configuration from your semantic-release config file.
+The following config file formats are supported:
+
+- `.releaserc`
+- `.releaserc.json`
+- `.releaserc.yaml`
+- `.releaserc.yml`
+- `.releaserc.js`
+- `.releaserc.cjs`
+- `release.config.js`
+- `release.config.cjs`
+
 Example `.releaserc.yaml`:
 
 ```yaml
@@ -48,8 +67,11 @@ branches:
   - "2.x"
 ```
 
-If no configuration is found, the action will use the repository's default
-branch.
+The action will consider a branch to be a release branch if it matches any of
+the configured branch names. Branch configurations can be either:
+
+- Simple strings (e.g., `"main"`, `"1.x"`)
+- Objects with a `name` property (e.g., `{ name: "beta", prerelease: true }`)
 
 ## Examples
 
@@ -60,45 +82,44 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Get Branch Info
+      - name: Check Release Branch
         uses: circleeh/get_branch_info@v1
         id: branch-info
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Release
-        if: ${{ steps.branch-info.outputs.is-release-branch }}
+        if: ${{ steps.branch-info.outputs.is-release-branch == 'true' }}
         run: npx semantic-release
 ```
 
-### Using with Multiple Release Branches
+### Pull Request Workflow
 
 ```yaml
-name: Release
+name: PR Check
 
 on:
-  push:
+  pull_request:
     branches:
       - main
       - "*.x"
 
 jobs:
-  release:
+  check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Get Branch Info
+      - uses: actions/checkout@v4
+      - name: Check Release Branch
         uses: circleeh/get_branch_info@v1
         id: branch-info
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Release
-        if: ${{ steps.branch-info.outputs.is-release-branch }}
-        run: npx semantic-release
+      - name: PR to Release Branch
+        if: ${{ steps.branch-info.outputs.is-release-branch == 'true' }}
+        run: echo "PR targets a release branch"
 ```
 
 ## Requirements

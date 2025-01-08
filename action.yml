@@ -1,8 +1,8 @@
 name: 'Get Release Branches'
-description: 'Determines release branches from .releaserc.yaml or GitHub default branch'
+description: 'Determines if current branch is a release branch based on semantic-release config'
 outputs:
   is-release-branch:
-    description: 'Branch conditions formatted for GitHub workflow expressions'
+    description: 'Boolean indicating if current branch is a release branch'
 runs:
   using: 'node20'
   main: 'dist/index.js'

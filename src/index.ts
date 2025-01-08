@@ -6,80 +6,62 @@ import path from 'path';
 
 export async function run(): Promise<void> {
   try {
-    let branchCondition: string;
+    // More explicitly handle PR vs direct push cases
+    const currentBranch = github.context.payload.pull_request
+      ? github.context.payload.pull_request.head.ref  // PR case (equivalent to GITHUB_HEAD_REF)
+      : github.context.ref.replace('refs/heads/', ''); // Direct push case (equivalent to GITHUB_REF)
 
-    // Try both .releaserc.yaml and .releaserc.json
-    const configPaths = [
-      path.join(process.cwd(), '.releaserc.yaml'),
-      path.join(process.cwd(), '.releaserc.yml'),
-      path.join(process.cwd(), '.releaserc.json')
+    core.debug(`GitHub Ref: ${github.context.ref}`);
+    core.debug(`Pull Request Head Ref: ${github.context.payload.pull_request?.head.ref}`);
+    core.debug(`Current branch: ${currentBranch}`);
+
+    // Check all possible .releaserc config files
+    const possibleConfigs = [
+      '.releaserc',
+      '.releaserc.json',
+      '.releaserc.yaml',
+      '.releaserc.yml',
+      '.releaserc.js',
+      '.releaserc.cjs',
+      'release.config.js',
+      'release.config.cjs'
     ];
 
-    // Try to read config files
-    let config: { branches?: (string | { name: string; prerelease?: boolean })[] } | null = null;
+    for (const configFile of possibleConfigs) {
+      const configPath = path.join(process.cwd(), configFile);
 
-    for (const configPath of configPaths) {
       try {
-        const fileContents = await fs.readFile(configPath, 'utf8');
-        config = configPath.endsWith('.json')
-          ? JSON.parse(fileContents)
-          : yaml.load(fileContents) as typeof config;
-        break;
+        let config;
+        if (configFile.endsWith('.js') || configFile.endsWith('.cjs')) {
+          // Handle JavaScript config files
+          config = require(configPath);
+        } else {
+          // Handle JSON and YAML config files
+          const fileContents = await fs.readFile(configPath, 'utf8');
+          config = configFile.endsWith('.json') ? JSON.parse(fileContents) : yaml.load(fileContents);
+        }
+
+        if (config?.branches) {
+          const releaseBranches = config.branches
+            .filter(Boolean)
+            .map((branch: string | { name: string }) => typeof branch === 'string' ? branch : branch.name)
+            .filter(Boolean);
+
+          const isReleaseBranch = releaseBranches.includes(currentBranch);
+
+          core.setOutput('is-release-branch', isReleaseBranch);
+          core.debug(`Is release branch: ${isReleaseBranch}`);
+          return; // Exit after finding and processing the first config file
+        }
       } catch (error) {
-        // Continue to next config file
+        // Continue to next config file if this one doesn't exist or can't be read
         continue;
       }
     }
 
-    if (config?.branches && config.branches.length > 0) {
-      // Filter out prerelease branches as they're handled differently
-      const releaseBranches = config.branches
-        .filter(branch => {
-          if (typeof branch === 'string') return true;
-          return !branch.prerelease;
-        })
-        .map(branch => typeof branch === 'string' ? branch : branch.name)
-        .filter(Boolean);
+    // If no valid config was found
+    core.setOutput('is-release-branch', false);
 
-      // If no release branches found, use semantic-release defaults
-      if (releaseBranches.length === 0) {
-        releaseBranches.push('master', 'main');
-      }
-
-      const branchConditions = releaseBranches
-        .map(branch => `github.ref == 'refs/heads/${branch}'`);
-
-      // Add maintenance branch patterns if they exist
-      const maintenancePatterns = config.branches
-        .filter(branch => typeof branch === 'string' && (
-          branch.includes('.x') || branch.includes('.X')
-        ));
-
-      if (maintenancePatterns.length > 0) {
-        core.info(`Found maintenance branch patterns: ${maintenancePatterns.join(', ')}`);
-      }
-
-      branchCondition = branchConditions.join(' || ');
-    } else {
-      // If no config found, use default branch
-      const token = process.env.GITHUB_TOKEN;
-      if (!token) {
-        core.setFailed('GITHUB_TOKEN is required');
-        return;
-      }
-
-      const octokit = github.getOctokit(token);
-      const [owner, repo] = process.env.GITHUB_REPOSITORY?.split('/') ?? [];
-
-      const { data: repository } = await octokit.rest.repos.get({
-        owner,
-        repo,
-      });
-
-      branchCondition = `github.ref == 'refs/heads/${repository.default_branch}'`;
-    }
-
-    core.setOutput('is-release-branch', branchCondition);
   } catch (error) {
     if (error instanceof Error) {
       core.setFailed(error.message);
