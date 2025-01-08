@@ -1,0 +1,24 @@
+{
+  "dictionaries": [],
+  "dictionaryDefinitions": [],
+  "ignorePaths": [],
+  "ignoreWords": [],
+  "import": [],
+  "version": "0.2",
+  "words": [
+    "circleeh",
+    "conventionalcommits",
+    "dotenv",
+    "eslintcache",
+    "jscoverage",
+    "jspm",
+    "Microbundle",
+    "Misha",
+    "Nuxt",
+    "pids",
+    "releaserc",
+    "stylelintcache",
+    "vuepress",
+    "wscript"
+  ]
+}
