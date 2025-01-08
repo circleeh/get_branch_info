@@ -1,3 +1,9 @@
+## [1.0.0-alpha.4](https://github.com/circleeh/get_branch_info/compare/v1.0.0-alpha.3...v1.0.0-alpha.4) (2025-01-08)
+
+### Features
+
+* 🏗️ Redesign release branch detection logic ([a92aeac](https://github.com/circleeh/get_branch_info/commit/a92aeac0646457d5693412f91abe3f0e3be2eae1))
+
 ## [1.0.0-alpha.3](https://github.com/circleeh/get_branch_info/compare/v1.0.0-alpha.2...v1.0.0-alpha.3) (2025-01-08)
 
 ### Bug Fixes
