@@ -1,3 +1,13 @@
+## [1.1.0](https://github.com/circleeh/get_branch_info/compare/v1.0.0...v1.1.0) (2025-01-09)
+
+### Features
+
+* **release:** Configure major release tagging ([f97a3dd](https://github.com/circleeh/get_branch_info/commit/f97a3dd27dd50198f49351dd229413d70be6022f))
+
+### Bug Fixes
+
+* **release:** Update how extra-plugins are configured ([5c3c91a](https://github.com/circleeh/get_branch_info/commit/5c3c91accf09846cc412517a0ab43844090ccf8e))
+
 ## 1.0.0 (2025-01-08)
 
 ### Features
