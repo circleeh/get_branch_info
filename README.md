@@ -38,9 +38,21 @@ Add this action to your workflow:
 
 ## Outputs
 
-| Output     | Description                                                       |
-| ---------- | ----------------------------------------------------------------- |
-| `is-release-branch` | Boolean indicating if current branch is a release branch |
+| Output              | Description                                                   |
+| ------------------- | ------------------------------------------------------------- |
+| `is-release-branch` | Boolean indicating if current branch is a release branch      |
+| `tagFormat-prefix`  | The prefix of the tag format (everything before `${version}`) |
+| `tagFormat-suffix`  | The suffix of the tag format (everything after `${version}`)  |
+
+For example, with `tagFormat: "release-${version}-stable"`:
+
+- `tagFormat-prefix` will be `"release-"`
+- `tagFormat-suffix` will be `"-stable"`
+
+If no tagFormat is specified in the config, the default is `"v${version}"`:
+
+- `tagFormat-prefix` will be `"v"`
+- `tagFormat-suffix` will be `""`
 
 ## Configuration
 

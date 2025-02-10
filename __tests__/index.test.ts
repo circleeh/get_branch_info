@@ -5,10 +5,17 @@ import { yamlConfig } from './test-configs';
 
 // Mock dependencies
 jest.mock('@actions/core');
+jest.mock('@actions/github', () => ({
+  context: {
+    ref: '',
+    payload: {},
+  },
+}));
 jest.mock('fs', () => ({
   promises: {
     readFile: jest.fn()
   },
+  existsSync: jest.fn(),
   constants: {
     O_RDONLY: 0,
     O_WRONLY: 1,
@@ -89,6 +96,7 @@ describe('Branch Detection Action', () => {
         pull_request: {
           number: 123,
           head: { ref: 'feature/123' },
+          base: { ref: 'main' },
           html_url: 'https://github.com/owner/repo/pull/123',
           body: 'PR description'
         }
@@ -129,6 +137,100 @@ describe('Branch Detection Action', () => {
 
       // Verify
       expect(mockSetOutput).toHaveBeenCalledWith('is-release-branch', false);
+      expect(mockSetOutput).toHaveBeenCalledWith('tagFormat-prefix', 'v');
+      expect(mockSetOutput).toHaveBeenCalledWith('tagFormat-suffix', '');
+    });
+  });
+
+  describe('tagFormat extraction', () => {
+    describe('direct push cases', () => {
+      test('extracts default tagFormat from release branch', async () => {
+        // Setup
+        github.context.ref = 'refs/heads/main';
+        mockReadFile.mockResolvedValueOnce(yaml.dump({
+          branches: ['main']
+        }));
+
+        // Execute
+        const { run } = require('../src/index');
+        await run();
+
+        // Verify
+        expect(mockSetOutput).toHaveBeenCalledWith('is-release-branch', true);
+        expect(mockSetOutput).toHaveBeenCalledWith('tagFormat-prefix', 'v');
+        expect(mockSetOutput).toHaveBeenCalledWith('tagFormat-suffix', '');
+      });
+
+      test('extracts custom tagFormat from non-release branch', async () => {
+        // Setup
+        github.context.ref = 'refs/heads/feature/123';
+        mockReadFile.mockResolvedValueOnce(yaml.dump({
+          branches: ['main'],
+          tagFormat: 'release-${version}-stable'
+        }));
+
+        // Execute
+        const { run } = require('../src/index');
+        await run();
+
+        // Verify
+        expect(mockSetOutput).toHaveBeenCalledWith('is-release-branch', false);
+        expect(mockSetOutput).toHaveBeenCalledWith('tagFormat-prefix', 'release-');
+        expect(mockSetOutput).toHaveBeenCalledWith('tagFormat-suffix', '-stable');
+      });
+    });
+
+    describe('pull request cases', () => {
+      test('extracts tagFormat from PR targeting release branch', async () => {
+        // Setup
+        github.context.payload = {
+          pull_request: {
+            number: 123,
+            head: { ref: 'feature/123' },
+            base: { ref: 'main' },
+            html_url: 'https://github.com/owner/repo/pull/123',
+            body: 'PR description'
+          }
+        };
+        mockReadFile.mockResolvedValueOnce(yaml.dump({
+          branches: ['main'],
+          tagFormat: 'pr-${version}-test'
+        }));
+
+        // Execute
+        const { run } = require('../src/index');
+        await run();
+
+        // Verify
+        expect(mockSetOutput).toHaveBeenCalledWith('is-release-branch', false);
+        expect(mockSetOutput).toHaveBeenCalledWith('tagFormat-prefix', 'pr-');
+        expect(mockSetOutput).toHaveBeenCalledWith('tagFormat-suffix', '-test');
+      });
+
+      test('extracts default tagFormat from PR on non-release branch', async () => {
+        // Setup
+        github.context.payload = {
+          pull_request: {
+            number: 456,
+            head: { ref: 'feature/456' },
+            base: { ref: 'develop' },
+            html_url: 'https://github.com/owner/repo/pull/456',
+            body: 'PR description'
+          }
+        };
+        mockReadFile.mockResolvedValueOnce(yaml.dump({
+          branches: ['main']
+        }));
+
+        // Execute
+        const { run } = require('../src/index');
+        await run();
+
+        // Verify
+        expect(mockSetOutput).toHaveBeenCalledWith('is-release-branch', false);
+        expect(mockSetOutput).toHaveBeenCalledWith('tagFormat-prefix', 'v');
+        expect(mockSetOutput).toHaveBeenCalledWith('tagFormat-suffix', '');
+      });
     });
   });
 });

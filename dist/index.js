@@ -83,14 +83,30 @@ async function run() {
                     const fileContents = await fs_1.promises.readFile(configPath, 'utf8');
                     config = configFile.endsWith('.json') ? JSON.parse(fileContents) : yaml.load(fileContents);
                 }
-                if (config === null || config === void 0 ? void 0 : config.branches) {
-                    const releaseBranches = config.branches
-                        .filter(Boolean)
-                        .map((branch) => typeof branch === 'string' ? branch : branch.name)
-                        .filter(Boolean);
-                    const isReleaseBranch = releaseBranches.includes(currentBranch);
-                    core.setOutput('is-release-branch', isReleaseBranch);
-                    core.debug(`Is release branch: ${isReleaseBranch}`);
+                if (config) {
+                    // Handle tagFormat extraction
+                    let tagFormat = config.tagFormat || 'v${version}';
+                    const versionPlaceholder = '${version}';
+                    const tagFormatParts = tagFormat.split(versionPlaceholder);
+                    const tagFormatPrefix = tagFormatParts[0] || '';
+                    const tagFormatSuffix = tagFormatParts[1] || '';
+                    core.setOutput('tagFormat-prefix', tagFormatPrefix);
+                    core.setOutput('tagFormat-suffix', tagFormatSuffix);
+                    core.debug(`Tag format prefix: ${tagFormatPrefix}`);
+                    core.debug(`Tag format suffix: ${tagFormatSuffix}`);
+                    // Handle release branches check
+                    if (config.branches) {
+                        const releaseBranches = config.branches
+                            .filter(Boolean)
+                            .map((branch) => typeof branch === 'string' ? branch : branch.name)
+                            .filter(Boolean);
+                        const isReleaseBranch = releaseBranches.includes(currentBranch);
+                        core.setOutput('is-release-branch', isReleaseBranch);
+                        core.debug(`Is release branch: ${isReleaseBranch}`);
+                    }
+                    else {
+                        core.setOutput('is-release-branch', false);
+                    }
                     return; // Exit after finding and processing the first config file
                 }
             }
