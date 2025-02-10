@@ -5,10 +5,17 @@ import { yamlConfig } from './test-configs';
 
 // Mock dependencies
 jest.mock('@actions/core');
+jest.mock('@actions/github', () => ({
+  context: {
+    ref: '',
+    payload: {},
+  },
+}));
 jest.mock('fs', () => ({
   promises: {
     readFile: jest.fn()
   },
+  existsSync: jest.fn(),
   constants: {
     O_RDONLY: 0,
     O_WRONLY: 1,
