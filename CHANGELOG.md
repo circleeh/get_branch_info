@@ -1,3 +1,9 @@
+## [1.2.0](https://github.com/circleeh/get_branch_info/compare/v1.1.0...v1.2.0) (2025-02-10)
+
+### Features
+
+* **output:** 🏷️ add tagFormat prefix and suffix extraction ([a7ed160](https://github.com/circleeh/get_branch_info/commit/a7ed160634fe38578a3eeab00527621c90c50b02))
+
 ## [1.1.0](https://github.com/circleeh/get_branch_info/compare/v1.0.0...v1.1.0) (2025-01-09)
 
 ### Features
