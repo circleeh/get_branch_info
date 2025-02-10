@@ -41,16 +41,34 @@ export async function run(): Promise<void> {
           config = configFile.endsWith('.json') ? JSON.parse(fileContents) : yaml.load(fileContents);
         }
 
-        if (config?.branches) {
-          const releaseBranches = config.branches
-            .filter(Boolean)
-            .map((branch: string | { name: string }) => typeof branch === 'string' ? branch : branch.name)
-            .filter(Boolean);
+        if (config) {
+          // Handle tagFormat extraction
+          let tagFormat = config.tagFormat || 'v${version}';
+          const versionPlaceholder = '${version}';
 
-          const isReleaseBranch = releaseBranches.includes(currentBranch);
+          const tagFormatParts = tagFormat.split(versionPlaceholder);
+          const tagFormatPrefix = tagFormatParts[0] || '';
+          const tagFormatSuffix = tagFormatParts[1] || '';
 
-          core.setOutput('is-release-branch', isReleaseBranch);
-          core.debug(`Is release branch: ${isReleaseBranch}`);
+          core.setOutput('tagFormat-prefix', tagFormatPrefix);
+          core.setOutput('tagFormat-suffix', tagFormatSuffix);
+          core.debug(`Tag format prefix: ${tagFormatPrefix}`);
+          core.debug(`Tag format suffix: ${tagFormatSuffix}`);
+
+          // Handle release branches check
+          if (config.branches) {
+            const releaseBranches = config.branches
+              .filter(Boolean)
+              .map((branch: string | { name: string }) => typeof branch === 'string' ? branch : branch.name)
+              .filter(Boolean);
+
+            const isReleaseBranch = releaseBranches.includes(currentBranch);
+            core.setOutput('is-release-branch', isReleaseBranch);
+            core.debug(`Is release branch: ${isReleaseBranch}`);
+          } else {
+            core.setOutput('is-release-branch', false);
+          }
+
           return; // Exit after finding and processing the first config file
         }
       } catch (error) {
