@@ -1,3 +1,9 @@
+## [1.3.0](https://github.com/circleeh/get_branch_info/compare/v1.2.0...v1.3.0) (2025-02-18)
+
+### Features
+
+* **output:** 🔨 list configured plugins for semantic-release ([439c918](https://github.com/circleeh/get_branch_info/commit/439c918714b0721495238fd28186905273fdd595))
+
 ## [1.2.0](https://github.com/circleeh/get_branch_info/compare/v1.1.0...v1.2.0) (2025-02-10)
 
 ### Features
