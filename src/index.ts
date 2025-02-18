@@ -55,6 +55,21 @@ export async function run(): Promise<void> {
           core.debug(`Tag format prefix: ${tagFormatPrefix}`);
           core.debug(`Tag format suffix: ${tagFormatSuffix}`);
 
+          // Extract and process plugins
+          if (config.plugins) {
+            const plugins = config.plugins.map((plugin: string | [string, object]) => {
+              if (typeof plugin === 'string') {
+                return plugin;
+              }
+              // If it's an array, take the first element which is the plugin name
+              return Array.isArray(plugin) ? plugin[0] : '';
+            }).filter(Boolean);
+
+            const pluginsList = plugins.join(' ');
+            core.setOutput('semantic-release-plugins', pluginsList);
+            core.debug(`Semantic Release Plugins: ${pluginsList}`);
+          }
+
           // Handle release branches check
           if (config.branches) {
             const releaseBranches = config.branches
