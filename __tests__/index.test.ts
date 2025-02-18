@@ -233,4 +233,67 @@ describe('Branch Detection Action', () => {
       });
     });
   });
+
+  describe('plugin extraction', () => {
+    test('extracts plugins from config with string entries', async () => {
+      // Setup
+      github.context.ref = 'refs/heads/main';
+      mockReadFile.mockResolvedValueOnce(yaml.dump({
+        plugins: [
+          '@semantic-release/commit-analyzer',
+          '@semantic-release/github'
+        ]
+      }));
+
+      // Execute
+      const { run } = require('../src/index');
+      await run();
+
+      // Verify
+      expect(mockSetOutput).toHaveBeenCalledWith(
+        'semantic-release-plugins',
+        '@semantic-release/commit-analyzer @semantic-release/github'
+      );
+    });
+
+    test('extracts plugins from config with mixed string and array entries', async () => {
+      // Setup
+      github.context.ref = 'refs/heads/main';
+      mockReadFile.mockResolvedValueOnce(yaml.dump({
+        plugins: [
+          '@semantic-release/commit-analyzer',
+          ['@semantic-release/changelog', { changelogFile: 'CHANGELOG.md' }],
+          '@semantic-release/github'
+        ]
+      }));
+
+      // Execute
+      const { run } = require('../src/index');
+      await run();
+
+      // Verify
+      expect(mockSetOutput).toHaveBeenCalledWith(
+        'semantic-release-plugins',
+        '@semantic-release/commit-analyzer @semantic-release/changelog @semantic-release/github'
+      );
+    });
+
+    test('handles config without plugins', async () => {
+      // Setup
+      github.context.ref = 'refs/heads/main';
+      mockReadFile.mockResolvedValueOnce(yaml.dump({
+        branches: ['main']
+      }));
+
+      // Execute
+      const { run } = require('../src/index');
+      await run();
+
+      // Verify
+      expect(mockSetOutput).not.toHaveBeenCalledWith(
+        'semantic-release-plugins',
+        expect.any(String)
+      );
+    });
+  });
 });

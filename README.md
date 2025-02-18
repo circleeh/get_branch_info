@@ -38,11 +38,12 @@ Add this action to your workflow:
 
 ## Outputs
 
-| Output              | Description                                                   |
-| ------------------- | ------------------------------------------------------------- |
-| `is-release-branch` | Boolean indicating if current branch is a release branch      |
-| `tagFormat-prefix`  | The prefix of the tag format (everything before `${version}`) |
-| `tagFormat-suffix`  | The suffix of the tag format (everything after `${version}`)  |
+| Output                     | Description                                                                |
+| -------------------------- | -------------------------------------------------------------------------- |
+| `is-release-branch`        | Boolean indicating if current branch is a release branch                   |
+| `tagFormat-prefix`         | The prefix of the tag format (everything before `${version}`)              |
+| `tagFormat-suffix`         | The suffix of the tag format (everything after `${version}`)               |
+| `semantic-release-plugins` | Space-separated list of semantic-release plugins configured in the project |
 
 For example, with `tagFormat: "release-${version}-stable"`:
 
@@ -53,6 +54,21 @@ If no tagFormat is specified in the config, the default is `"v${version}"`:
 
 - `tagFormat-prefix` will be `"v"`
 - `tagFormat-suffix` will be `""`
+
+For the `semantic-release-plugins` output, with a configuration like:
+
+```json
+{
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    ["@semantic-release/changelog", { "changelogFile": "CHANGELOG.md" }],
+    "@semantic-release/github"
+  ]
+}
+```
+
+The output would be:
+`@semantic-release/commit-analyzer @semantic-release/changelog @semantic-release/github`
 
 ## Configuration
 
