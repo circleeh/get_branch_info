@@ -12,6 +12,7 @@ repos:
       - id: check-xml
       - id: pretty-format-json
         args: [--autofix]
+        exclude: "^package-lock.json$"
       - id: requirements-txt-fixer
       # Basic file linting
       - id: end-of-file-fixer
