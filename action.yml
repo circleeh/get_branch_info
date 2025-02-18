@@ -3,6 +3,12 @@ description: 'Determines if current branch is a release branch based on semantic
 outputs:
   is-release-branch:
     description: 'Boolean indicating if current branch is a release branch'
+  tagFormat-prefix:
+    description: 'The prefix part of the semantic-release tagFormat configuration'
+  tagFormat-suffix:
+    description: 'The suffix part of the semantic-release tagFormat configuration'
+  semantic-release-plugins:
+    description: 'Space-separated list of semantic-release plugins found in the configuration'
 runs:
   using: 'node20'
   main: 'dist/index.js'
