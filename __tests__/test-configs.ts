@@ -10,5 +10,15 @@ export const yamlConfig = {
     '@semantic-release/commit-analyzer',
     '@semantic-release/release-notes-generator',
     '@semantic-release/github'
-  ]
+  ],
+  analyzeCommits: [
+    {
+      path: '@semantic-release/commit-analyzer',
+      preset: 'conventionalcommits'
+    }
+  ],
+  generateNotes: {
+    path: '@semantic-release/release-notes-generator',
+    preset: 'conventionalcommits'
+  }
 };
