@@ -1,3 +1,10 @@
+## [1.5.0-alpha.1](https://github.com/circleeh/get_branch_info/compare/v1.4.0...v1.5.0-alpha.1) (2025-02-19)
+
+### Features
+
+* **action:** 🧑‍💻 add short-sha output ([df65b97](https://github.com/circleeh/get_branch_info/commit/df65b97e2fdbb96673eb264f1c6dc9215a262ac3))
+* **test:** ✨ add short-sha retrieval functionality and tests ([30d9743](https://github.com/circleeh/get_branch_info/commit/30d9743259f7fcd501ad3d245edb4248a10f12df))
+
 ## [1.4.0](https://github.com/circleeh/get_branch_info/compare/v1.3.0...v1.4.0) (2025-02-19)
 
 ### Features

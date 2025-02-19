@@ -2,6 +2,8 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 import * as yaml from 'js-yaml';
 import { yamlConfig } from './test-configs';
+import { execSync } from 'child_process';
+import { run } from '../src/index';
 
 // Mock dependencies
 jest.mock('@actions/core');
@@ -33,6 +35,7 @@ jest.mock('fs', () => ({
 jest.mock('path', () => ({
   join: (...paths: string[]) => paths.join('/')
 }));
+jest.mock('child_process');
 
 describe('Branch Detection Action', () => {
   // Get mocked functions
@@ -55,7 +58,6 @@ describe('Branch Detection Action', () => {
       mockReadFile.mockResolvedValueOnce(yaml.dump(yamlConfig));
 
       // Execute
-      const { run } = require('../src/index');
       await run();
 
       // Verify
@@ -68,7 +70,6 @@ describe('Branch Detection Action', () => {
       mockReadFile.mockResolvedValueOnce(yaml.dump(yamlConfig));
 
       // Execute
-      const { run } = require('../src/index');
       await run();
 
       // Verify
@@ -81,7 +82,6 @@ describe('Branch Detection Action', () => {
       mockReadFile.mockResolvedValueOnce(yaml.dump(yamlConfig));
 
       // Execute
-      const { run } = require('../src/index');
       await run();
 
       // Verify
@@ -104,7 +104,6 @@ describe('Branch Detection Action', () => {
       mockReadFile.mockResolvedValueOnce(yaml.dump(yamlConfig));
 
       // Execute
-      const { run } = require('../src/index');
       await run();
 
       // Verify
@@ -119,7 +118,6 @@ describe('Branch Detection Action', () => {
       mockReadFile.mockRejectedValue(new Error('File not found'));
 
       // Execute
-      const { run } = require('../src/index');
       await run();
 
       // Verify
@@ -132,7 +130,6 @@ describe('Branch Detection Action', () => {
       mockReadFile.mockResolvedValueOnce(yaml.dump({ plugins: [] }));
 
       // Execute
-      const { run } = require('../src/index');
       await run();
 
       // Verify
@@ -152,7 +149,6 @@ describe('Branch Detection Action', () => {
         }));
 
         // Execute
-        const { run } = require('../src/index');
         await run();
 
         // Verify
@@ -170,7 +166,6 @@ describe('Branch Detection Action', () => {
         }));
 
         // Execute
-        const { run } = require('../src/index');
         await run();
 
         // Verify
@@ -198,7 +193,6 @@ describe('Branch Detection Action', () => {
         }));
 
         // Execute
-        const { run } = require('../src/index');
         await run();
 
         // Verify
@@ -223,7 +217,6 @@ describe('Branch Detection Action', () => {
         }));
 
         // Execute
-        const { run } = require('../src/index');
         await run();
 
         // Verify
@@ -246,7 +239,6 @@ describe('Branch Detection Action', () => {
       }));
 
       // Execute
-      const { run } = require('../src/index');
       await run();
 
       // Verify
@@ -268,7 +260,6 @@ describe('Branch Detection Action', () => {
       }));
 
       // Execute
-      const { run } = require('../src/index');
       await run();
 
       // Verify
@@ -286,7 +277,6 @@ describe('Branch Detection Action', () => {
       }));
 
       // Execute
-      const { run } = require('../src/index');
       await run();
 
       // Verify
@@ -312,7 +302,6 @@ describe('Branch Detection Action', () => {
       }));
 
       // Execute
-      const { run } = require('../src/index');
       await run();
 
       // Verify
@@ -320,6 +309,74 @@ describe('Branch Detection Action', () => {
         'semantic-release-plugins',
         '@semantic-release/commit-analyzer conventional-changelog-conventionalcommits conventional-changelog-angular'
       );
+    });
+  });
+
+  describe('short SHA functionality', () => {
+    beforeEach(() => {
+      // Reset all mocks before each test
+      jest.resetAllMocks();
+
+      // Mock execSync to return a fake SHA
+      (execSync as jest.Mock).mockReturnValue('abc1234\n');
+    });
+
+    it('should get short SHA for PR branch', async () => {
+      // Mock PR context
+      github.context.payload = {
+        pull_request: {
+          number: 123,
+          head: {
+            ref: 'feature-branch'
+          },
+          html_url: 'https://github.com/owner/repo/pull/123',
+          body: 'PR description'
+        }
+      };
+
+      await run();
+
+      // Verify execSync was called with the correct command
+      expect(execSync).toHaveBeenCalledWith(
+        'git rev-parse --short "feature-branch"',
+        expect.any(Object)
+      );
+
+      // Verify the output was set
+      expect(core.setOutput).toHaveBeenCalledWith('short-sha', 'abc1234');
+    });
+
+    it('should get short SHA for direct push', async () => {
+      // Mock direct push context
+      github.context.payload = {};
+      github.context.ref = 'refs/heads/main';
+
+      await run();
+
+      // Verify execSync was called with the correct command
+      expect(execSync).toHaveBeenCalledWith(
+        'git rev-parse --short HEAD',
+        expect.any(Object)
+      );
+
+      // Verify the output was set
+      expect(core.setOutput).toHaveBeenCalledWith('short-sha', 'abc1234');
+    });
+
+    it('should handle git command failure gracefully', async () => {
+      // Mock execSync to throw an error
+      (execSync as jest.Mock).mockImplementation(() => {
+        throw new Error('git command failed');
+      });
+
+      github.context.payload = {};
+      github.context.ref = 'refs/heads/main';
+
+      await run();
+
+      // Verify warning was logged
+      expect(core.warning).toHaveBeenCalledWith('Failed to get short SHA');
+      expect(core.debug).toHaveBeenCalledWith(expect.stringContaining('Error getting short SHA'));
     });
   });
 });

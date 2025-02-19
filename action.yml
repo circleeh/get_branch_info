@@ -1,14 +1,19 @@
-name: 'Get Release Branches'
-description: 'Determines if current branch is a release branch based on semantic-release config'
+name: 'Get Release Branch Info'
+description: 'Determines if the current branch is configured as a release branch in semantic-release configuration'
 outputs:
   is-release-branch:
     description: 'Boolean indicating if current branch is a release branch'
   tagFormat-prefix:
-    description: 'The prefix part of the semantic-release tagFormat configuration'
+    description: 'The prefix of the tag format (everything before ${version})'
   tagFormat-suffix:
-    description: 'The suffix part of the semantic-release tagFormat configuration'
+    description: 'The suffix of the tag format (everything after ${version})'
   semantic-release-plugins:
-    description: 'Space-separated list of semantic-release plugins found in the configuration'
+    description: 'Space-separated list of semantic-release plugins configured in the project'
+  short-sha:
+    description: 'Short version of the current commit SHA (7 characters)'
 runs:
   using: 'node20'
   main: 'dist/index.js'
+branding:
+  icon: 'git-branch'
+  color: 'blue'
