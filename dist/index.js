@@ -103,7 +103,27 @@ async function run() {
                             // If it's an array, take the first element which is the plugin name
                             return Array.isArray(plugin) ? plugin[0] : '';
                         }).filter(Boolean);
-                        const pluginsList = plugins.join(' ');
+                        // Check for preset in analyzeCommits and generateNotes
+                        let additionalPackages = [];
+                        const checkPreset = (section) => {
+                            if (section === null || section === void 0 ? void 0 : section.preset) {
+                                additionalPackages.push(`conventional-changelog-${section.preset}`);
+                            }
+                        };
+                        if (config.analyzeCommits) {
+                            const commitAnalyzers = Array.isArray(config.analyzeCommits)
+                                ? config.analyzeCommits
+                                : [config.analyzeCommits];
+                            commitAnalyzers.forEach((analyzer) => checkPreset(analyzer));
+                        }
+                        if (config.generateNotes) {
+                            const noteGenerators = Array.isArray(config.generateNotes)
+                                ? config.generateNotes
+                                : [config.generateNotes];
+                            noteGenerators.forEach((generator) => checkPreset(generator));
+                        }
+                        const allPackages = [...new Set([...plugins, ...additionalPackages])];
+                        const pluginsList = allPackages.join(' ');
                         core.setOutput('semantic-release-plugins', pluginsList);
                         core.debug(`Semantic Release Plugins: ${pluginsList}`);
                     }

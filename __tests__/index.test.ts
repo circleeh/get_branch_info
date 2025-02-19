@@ -295,5 +295,31 @@ describe('Branch Detection Action', () => {
         expect.any(String)
       );
     });
+
+    test('includes conventional-changelog packages when presets are used', async () => {
+      // Setup
+      github.context.ref = 'refs/heads/main';
+      mockReadFile.mockResolvedValueOnce(JSON.stringify({
+        plugins: ['@semantic-release/commit-analyzer'],
+        analyzeCommits: [{
+          path: '@semantic-release/commit-analyzer',
+          preset: 'conventionalcommits'
+        }],
+        generateNotes: {
+          path: '@semantic-release/release-notes-generator',
+          preset: 'angular'
+        }
+      }));
+
+      // Execute
+      const { run } = require('../src/index');
+      await run();
+
+      // Verify
+      expect(mockSetOutput).toHaveBeenCalledWith(
+        'semantic-release-plugins',
+        '@semantic-release/commit-analyzer conventional-changelog-conventionalcommits conventional-changelog-angular'
+      );
+    });
   });
 });
