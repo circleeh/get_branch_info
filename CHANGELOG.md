@@ -1,3 +1,9 @@
+## [1.4.0-alpha.1](https://github.com/circleeh/get_branch_info/compare/v1.3.0...v1.4.0-alpha.1) (2025-02-19)
+
+### Features
+
+* **plugins:** 📦️ Add support for conventional-changelog presets detection ([fde39d0](https://github.com/circleeh/get_branch_info/commit/fde39d0170e3d059b773e63d97a5250245bcadd9))
+
 ## [1.3.0](https://github.com/circleeh/get_branch_info/compare/v1.2.0...v1.3.0) (2025-02-18)
 
 ### Features
