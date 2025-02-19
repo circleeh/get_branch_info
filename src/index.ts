@@ -65,7 +65,34 @@ export async function run(): Promise<void> {
               return Array.isArray(plugin) ? plugin[0] : '';
             }).filter(Boolean);
 
-            const pluginsList = plugins.join(' ');
+            // Check for preset in analyzeCommits and generateNotes
+            let additionalPackages: string[] = [];
+            interface PresetConfig {
+              preset?: string;
+              path?: string;
+            }
+            const checkPreset = (section: PresetConfig) => {
+              if (section?.preset) {
+                additionalPackages.push(`conventional-changelog-${section.preset}`);
+              }
+            };
+
+            if (config.analyzeCommits) {
+              const commitAnalyzers = Array.isArray(config.analyzeCommits)
+                ? config.analyzeCommits
+                : [config.analyzeCommits];
+              commitAnalyzers.forEach((analyzer: PresetConfig) => checkPreset(analyzer));
+            }
+
+            if (config.generateNotes) {
+              const noteGenerators = Array.isArray(config.generateNotes)
+                ? config.generateNotes
+                : [config.generateNotes];
+              noteGenerators.forEach((generator: PresetConfig) => checkPreset(generator));
+            }
+
+            const allPackages = [...new Set([...plugins, ...additionalPackages])];
+            const pluginsList = allPackages.join(' ');
             core.setOutput('semantic-release-plugins', pluginsList);
             core.debug(`Semantic Release Plugins: ${pluginsList}`);
           }
