@@ -44,6 +44,7 @@ Add this action to your workflow:
 | `tagFormat-prefix`         | The prefix of the tag format (everything before `${version}`)              |
 | `tagFormat-suffix`         | The suffix of the tag format (everything after `${version}`)               |
 | `semantic-release-plugins` | Space-separated list of semantic-release plugins configured in the project |
+| `short-sha`                | Short version of the current commit SHA (7 characters)                     |
 
 For example, with `tagFormat: "release-${version}-stable"`:
 
