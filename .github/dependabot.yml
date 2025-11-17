@@ -1,0 +1,10 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/" # Location of GitHub Actions workflows, usually in /.github/workflows/
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "npm"
+    directory: "/" # Location of your package.json file
+    schedule:
+      interval: "weekly"
