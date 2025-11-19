@@ -49,7 +49,6 @@ const github = __importStar(__nccwpck_require__(3228));
 const yaml = __importStar(__nccwpck_require__(4281));
 const fs_1 = __nccwpck_require__(9896);
 const path_1 = __importDefault(__nccwpck_require__(6928));
-const child_process_1 = __nccwpck_require__(5317);
 async function run() {
     var _a;
     try {
@@ -57,24 +56,11 @@ async function run() {
         const currentBranch = github.context.payload.pull_request
             ? github.context.payload.pull_request.head.ref // PR case (equivalent to GITHUB_HEAD_REF)
             : github.context.ref.replace('refs/heads/', ''); // Direct push case (equivalent to GITHUB_REF)
-        // Get the short SHA
-        let shortSha;
-        try {
-            if (github.context.payload.pull_request) {
-                // PR case - use GITHUB_HEAD_REF
-                shortSha = (0, child_process_1.execSync)(`git rev-parse --short "${currentBranch}"`, { encoding: 'utf-8' }).trim();
-            }
-            else {
-                // Direct push case - use HEAD
-                shortSha = (0, child_process_1.execSync)('git rev-parse --short HEAD', { encoding: 'utf-8' }).trim();
-            }
-            core.setOutput('short-sha', shortSha);
-            core.debug(`Short SHA: ${shortSha}`);
-        }
-        catch (error) {
-            core.warning('Failed to get short SHA');
-            core.debug(`Error getting short SHA: ${error}`);
-        }
+        // Get the short SHA from GitHub context (more reliable than git commands)
+        // github.context.sha contains the commit SHA that triggered the workflow
+        const shortSha = github.context.sha.substring(0, 7);
+        core.setOutput('short-sha', shortSha);
+        core.debug(`Short SHA: ${shortSha}`);
         core.debug(`GitHub Ref: ${github.context.ref}`);
         core.debug(`Pull Request Head Ref: ${(_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.head.ref}`);
         core.debug(`Current branch: ${currentBranch}`);
