@@ -3,7 +3,6 @@ import * as github from '@actions/github';
 import * as yaml from 'js-yaml';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { execSync } from 'child_process';
 
 export async function run(): Promise<void> {
   try {
@@ -12,22 +11,11 @@ export async function run(): Promise<void> {
       ? github.context.payload.pull_request.head.ref  // PR case (equivalent to GITHUB_HEAD_REF)
       : github.context.ref.replace('refs/heads/', ''); // Direct push case (equivalent to GITHUB_REF)
 
-    // Get the short SHA
-    let shortSha: string;
-    try {
-      if (github.context.payload.pull_request) {
-        // PR case - use GITHUB_HEAD_REF
-        shortSha = execSync(`git rev-parse --short "${currentBranch}"`, { encoding: 'utf-8' }).trim();
-      } else {
-        // Direct push case - use HEAD
-        shortSha = execSync('git rev-parse --short HEAD', { encoding: 'utf-8' }).trim();
-      }
-      core.setOutput('short-sha', shortSha);
-      core.debug(`Short SHA: ${shortSha}`);
-    } catch (error) {
-      core.warning('Failed to get short SHA');
-      core.debug(`Error getting short SHA: ${error}`);
-    }
+    // Get the short SHA from GitHub context (more reliable than git commands)
+    // github.context.sha contains the commit SHA that triggered the workflow
+    const shortSha = github.context.sha.substring(0, 7);
+    core.setOutput('short-sha', shortSha);
+    core.debug(`Short SHA: ${shortSha}`);
 
     core.debug(`GitHub Ref: ${github.context.ref}`);
     core.debug(`Pull Request Head Ref: ${github.context.payload.pull_request?.head.ref}`);

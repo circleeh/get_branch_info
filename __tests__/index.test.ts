@@ -2,7 +2,6 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 import * as yaml from 'js-yaml';
 import { yamlConfig } from './test-configs';
-import { execSync } from 'child_process';
 import { run } from '../src/index';
 
 // Mock dependencies
@@ -10,6 +9,7 @@ jest.mock('@actions/core');
 jest.mock('@actions/github', () => ({
   context: {
     ref: '',
+    sha: '',
     payload: {},
   },
 }));
@@ -35,7 +35,6 @@ jest.mock('fs', () => ({
 jest.mock('path', () => ({
   join: (...paths: string[]) => paths.join('/')
 }));
-jest.mock('child_process');
 
 describe('Branch Detection Action', () => {
   // Get mocked functions
@@ -48,6 +47,7 @@ describe('Branch Detection Action', () => {
 
     // Reset GitHub context
     github.context.ref = '';
+    github.context.sha = '';
     github.context.payload = {};
   });
 
@@ -316,13 +316,11 @@ describe('Branch Detection Action', () => {
     beforeEach(() => {
       // Reset all mocks before each test
       jest.resetAllMocks();
-
-      // Mock execSync to return a fake SHA
-      (execSync as jest.Mock).mockReturnValue('abc1234\n');
     });
 
     it('should get short SHA for PR branch', async () => {
-      // Mock PR context
+      // Mock PR context with a full SHA
+      github.context.sha = 'abc1234567890def1234567890abcdef12345678';
       github.context.payload = {
         pull_request: {
           number: 123,
@@ -333,50 +331,38 @@ describe('Branch Detection Action', () => {
           body: 'PR description'
         }
       };
+      mockReadFile.mockResolvedValueOnce(yaml.dump(yamlConfig));
 
       await run();
 
-      // Verify execSync was called with the correct command
-      expect(execSync).toHaveBeenCalledWith(
-        'git rev-parse --short "feature-branch"',
-        expect.any(Object)
-      );
-
-      // Verify the output was set
+      // Verify the output was set with the first 7 characters of the SHA
       expect(core.setOutput).toHaveBeenCalledWith('short-sha', 'abc1234');
     });
 
     it('should get short SHA for direct push', async () => {
-      // Mock direct push context
+      // Mock direct push context with a full SHA
+      github.context.sha = 'def9876543210abc9876543210abcdef98765432';
       github.context.payload = {};
       github.context.ref = 'refs/heads/main';
+      mockReadFile.mockResolvedValueOnce(yaml.dump(yamlConfig));
 
       await run();
 
-      // Verify execSync was called with the correct command
-      expect(execSync).toHaveBeenCalledWith(
-        'git rev-parse --short HEAD',
-        expect.any(Object)
-      );
-
-      // Verify the output was set
-      expect(core.setOutput).toHaveBeenCalledWith('short-sha', 'abc1234');
+      // Verify the output was set with the first 7 characters of the SHA
+      expect(core.setOutput).toHaveBeenCalledWith('short-sha', 'def9876');
     });
 
-    it('should handle git command failure gracefully', async () => {
-      // Mock execSync to throw an error
-      (execSync as jest.Mock).mockImplementation(() => {
-        throw new Error('git command failed');
-      });
-
+    it('should handle SHA shorter than 7 characters', async () => {
+      // Mock context with a short SHA (edge case)
+      github.context.sha = 'abc12';
       github.context.payload = {};
       github.context.ref = 'refs/heads/main';
+      mockReadFile.mockResolvedValueOnce(yaml.dump(yamlConfig));
 
       await run();
 
-      // Verify warning was logged
-      expect(core.warning).toHaveBeenCalledWith('Failed to get short SHA');
-      expect(core.debug).toHaveBeenCalledWith(expect.stringContaining('Error getting short SHA'));
+      // Verify the output was set with whatever characters are available
+      expect(core.setOutput).toHaveBeenCalledWith('short-sha', 'abc12');
     });
   });
 });
