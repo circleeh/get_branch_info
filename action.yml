@@ -12,7 +12,7 @@ outputs:
   short-sha:
     description: 'Short version of the current commit SHA (7 characters)'
 runs:
-  using: 'node20'
+  using: 'node24'
   main: 'dist/index.js'
 branding:
   icon: 'git-branch'
