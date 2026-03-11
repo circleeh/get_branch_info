@@ -1,3 +1,22 @@
+## [1.6.0](https://github.com/circleeh/get_branch_info/compare/v1.5.5...v1.6.0) (2026-03-11)
+
+### ⚠ BREAKING CHANGES
+
+* **deps:** update dependencies and add mocks for GitHub actions
+
+### Features
+
+* **tests:** enhance mocks and improve test implementations ([dd7f196](https://github.com/circleeh/get_branch_info/commit/dd7f1967eff72e3afb90c1d463fb3f9d33cbc555))
+
+### Bug Fixes
+
+* **workflow:** enhance test coverage reporting in GitHub Actions ([ef2c400](https://github.com/circleeh/get_branch_info/commit/ef2c4009e95a3c49da2aca706dd88dec15469e8f))
+* **workflow:** update coverage path variable in test workflow ([639783c](https://github.com/circleeh/get_branch_info/commit/639783cee97dc8b6a6923fb8aa74808532fb26bc))
+
+### Miscellaneous Chores
+
+* **deps:** update dependencies and add mocks for GitHub actions ([7d3f8d5](https://github.com/circleeh/get_branch_info/commit/7d3f8d5065bd6e669124cf20ee9f5f9f5d21264b))
+
 ## [1.5.5](https://github.com/circleeh/get_branch_info/compare/v1.5.4...v1.5.5) (2026-03-11)
 
 ## [1.5.4](https://github.com/circleeh/get_branch_info/compare/v1.5.3...v1.5.4) (2026-03-11)
