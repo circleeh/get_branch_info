@@ -1,0 +1,28 @@
+jest.config.js
+  0022f0937bb75686 16-18
+__mocks__/@actions-github.ts
+  0022f0937bb75686 1-5
+__mocks__/@actions-core.ts
+  0022f0937bb75686 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.10",
+  "base_commit_sha": "ea5df08a382d201b9566da2dae502fa47cb7a1ac",
+  "prompts": {
+    "0022f0937bb75686": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "05ce52c6-879b-4077-8639-31598f31c9e6",
+        "model": "default"
+      },
+      "human_author": "Chris Poupart <chris.poupart@gmail.com>",
+      "messages": [],
+      "total_additions": 15,
+      "total_deletions": 1,
+      "accepted_lines": 13,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/3b59222823e00ac3d5342a0cb60806e6131cc337fc321981a5d433e9c71fbb0c"
+    }
+  }
+}
