@@ -1,0 +1,24 @@
+.github/workflows/test.yaml
+  0022f0937bb75686 23-26,32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.10",
+  "base_commit_sha": "ef2c4009e95a3c49da2aca706dd88dec15469e8f",
+  "prompts": {
+    "0022f0937bb75686": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "05ce52c6-879b-4077-8639-31598f31c9e6",
+        "model": "default"
+      },
+      "human_author": "Chris Poupart <chris.poupart@gmail.com>",
+      "messages": [],
+      "total_additions": 5,
+      "total_deletions": 1,
+      "accepted_lines": 5,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/8315545e2835162ea71676a7214a2ad406594cbe391fd4e40d68b5cd3f24e54c"
+    }
+  }
+}
