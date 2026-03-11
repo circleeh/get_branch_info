@@ -4,34 +4,30 @@ import * as yaml from 'js-yaml';
 import { yamlConfig } from './test-configs';
 import { run } from '../src/index';
 
-// Mock dependencies
-jest.mock('@actions/core');
-jest.mock('@actions/github', () => ({
-  context: {
-    ref: '',
-    sha: '',
-    payload: {},
-  },
-}));
-jest.mock('fs', () => ({
-  promises: {
-    readFile: jest.fn()
-  },
-  existsSync: jest.fn(),
-  constants: {
-    O_RDONLY: 0,
-    O_WRONLY: 1,
-    O_RDWR: 2,
-    S_IFMT: 0o170000,
-    S_IFREG: 0o100000,
-    S_IFDIR: 0o040000,
-    S_IFCHR: 0o020000,
-    S_IFBLK: 0o060000,
-    S_IFIFO: 0o010000,
-    S_IFLNK: 0o120000,
-    S_IFSOCK: 0o140000
-  }
-}));
+// Mock dependencies are provided via Jest moduleNameMapper to local stubs
+jest.mock('fs', () => {
+  const readFile = jest.fn();
+
+  return {
+    promises: {
+      readFile
+    },
+    existsSync: jest.fn(),
+    constants: {
+      O_RDONLY: 0,
+      O_WRONLY: 1,
+      O_RDWR: 2,
+      S_IFMT: 0o170000,
+      S_IFREG: 0o100000,
+      S_IFDIR: 0o040000,
+      S_IFCHR: 0o020000,
+      S_IFBLK: 0o060000,
+      S_IFIFO: 0o010000,
+      S_IFLNK: 0o120000,
+      S_IFSOCK: 0o140000
+    }
+  };
+});
 jest.mock('path', () => ({
   join: (...paths: string[]) => paths.join('/')
 }));
@@ -45,6 +41,14 @@ describe('Branch Detection Action', () => {
     // Clear all mocks
     jest.clearAllMocks();
 
+    // Default behavior: simulate a real project with .releaserc.json present
+    mockReadFile.mockImplementation(async (filePath: unknown) => {
+      if (typeof filePath === 'string' && filePath.endsWith('.releaserc.json')) {
+        return JSON.stringify(yamlConfig);
+      }
+      throw new Error('File not found');
+    });
+
     // Reset GitHub context
     github.context.ref = '';
     github.context.sha = '';
@@ -55,7 +59,6 @@ describe('Branch Detection Action', () => {
     test('identifies main branch as release branch', async () => {
       // Setup
       github.context.ref = 'refs/heads/main';
-      mockReadFile.mockResolvedValueOnce(yaml.dump(yamlConfig));
 
       // Execute
       await run();
@@ -67,7 +70,6 @@ describe('Branch Detection Action', () => {
     test('identifies feature branch as non-release branch', async () => {
       // Setup
       github.context.ref = 'refs/heads/feature/123';
-      mockReadFile.mockResolvedValueOnce(yaml.dump(yamlConfig));
 
       // Execute
       await run();
@@ -79,7 +81,6 @@ describe('Branch Detection Action', () => {
     test('identifies maintenance branch as release branch', async () => {
       // Setup
       github.context.ref = 'refs/heads/1.x';
-      mockReadFile.mockResolvedValueOnce(yaml.dump(yamlConfig));
 
       // Execute
       await run();
@@ -101,7 +102,6 @@ describe('Branch Detection Action', () => {
           body: 'PR description'
         }
       };
-      mockReadFile.mockResolvedValueOnce(yaml.dump(yamlConfig));
 
       // Execute
       await run();
@@ -127,7 +127,7 @@ describe('Branch Detection Action', () => {
     test('returns false when config has no branches', async () => {
       // Setup
       github.context.ref = 'refs/heads/main';
-      mockReadFile.mockResolvedValueOnce(yaml.dump({ plugins: [] }));
+      mockReadFile.mockResolvedValueOnce(JSON.stringify({ plugins: [] }));
 
       // Execute
       await run();
@@ -144,7 +144,7 @@ describe('Branch Detection Action', () => {
       test('extracts default tagFormat from release branch', async () => {
         // Setup
         github.context.ref = 'refs/heads/main';
-        mockReadFile.mockResolvedValueOnce(yaml.dump({
+        mockReadFile.mockResolvedValueOnce(JSON.stringify({
           branches: ['main']
         }));
 
@@ -160,7 +160,7 @@ describe('Branch Detection Action', () => {
       test('extracts custom tagFormat from non-release branch', async () => {
         // Setup
         github.context.ref = 'refs/heads/feature/123';
-        mockReadFile.mockResolvedValueOnce(yaml.dump({
+        mockReadFile.mockResolvedValueOnce(JSON.stringify({
           branches: ['main'],
           tagFormat: 'release-${version}-stable'
         }));
@@ -187,7 +187,7 @@ describe('Branch Detection Action', () => {
             body: 'PR description'
           }
         };
-        mockReadFile.mockResolvedValueOnce(yaml.dump({
+        mockReadFile.mockResolvedValueOnce(JSON.stringify({
           branches: ['main'],
           tagFormat: 'pr-${version}-test'
         }));
@@ -212,7 +212,7 @@ describe('Branch Detection Action', () => {
             body: 'PR description'
           }
         };
-        mockReadFile.mockResolvedValueOnce(yaml.dump({
+        mockReadFile.mockResolvedValueOnce(JSON.stringify({
           branches: ['main']
         }));
 
@@ -231,7 +231,7 @@ describe('Branch Detection Action', () => {
     test('extracts plugins from config with string entries', async () => {
       // Setup
       github.context.ref = 'refs/heads/main';
-      mockReadFile.mockResolvedValueOnce(yaml.dump({
+      mockReadFile.mockResolvedValueOnce(JSON.stringify({
         plugins: [
           '@semantic-release/commit-analyzer',
           '@semantic-release/github'
@@ -251,7 +251,7 @@ describe('Branch Detection Action', () => {
     test('extracts plugins from config with mixed string and array entries', async () => {
       // Setup
       github.context.ref = 'refs/heads/main';
-      mockReadFile.mockResolvedValueOnce(yaml.dump({
+      mockReadFile.mockResolvedValueOnce(JSON.stringify({
         plugins: [
           '@semantic-release/commit-analyzer',
           ['@semantic-release/changelog', { changelogFile: 'CHANGELOG.md' }],
@@ -272,7 +272,7 @@ describe('Branch Detection Action', () => {
     test('handles config without plugins', async () => {
       // Setup
       github.context.ref = 'refs/heads/main';
-      mockReadFile.mockResolvedValueOnce(yaml.dump({
+      mockReadFile.mockResolvedValueOnce(JSON.stringify({
         branches: ['main']
       }));
 
@@ -313,11 +313,6 @@ describe('Branch Detection Action', () => {
   });
 
   describe('short SHA functionality', () => {
-    beforeEach(() => {
-      // Reset all mocks before each test
-      jest.resetAllMocks();
-    });
-
     it('should get short SHA for PR branch', async () => {
       // Mock PR context with a full SHA
       github.context.sha = 'abc1234567890def1234567890abcdef12345678';
@@ -331,7 +326,7 @@ describe('Branch Detection Action', () => {
           body: 'PR description'
         }
       };
-      mockReadFile.mockResolvedValueOnce(yaml.dump(yamlConfig));
+      mockReadFile.mockResolvedValueOnce(JSON.stringify(yamlConfig));
 
       await run();
 
@@ -344,7 +339,7 @@ describe('Branch Detection Action', () => {
       github.context.sha = 'def9876543210abc9876543210abcdef98765432';
       github.context.payload = {};
       github.context.ref = 'refs/heads/main';
-      mockReadFile.mockResolvedValueOnce(yaml.dump(yamlConfig));
+      mockReadFile.mockResolvedValueOnce(JSON.stringify(yamlConfig));
 
       await run();
 
@@ -357,7 +352,7 @@ describe('Branch Detection Action', () => {
       github.context.sha = 'abc12';
       github.context.payload = {};
       github.context.ref = 'refs/heads/main';
-      mockReadFile.mockResolvedValueOnce(yaml.dump(yamlConfig));
+      mockReadFile.mockResolvedValueOnce(JSON.stringify(yamlConfig));
 
       await run();
 
