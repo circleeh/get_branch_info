@@ -13,6 +13,8 @@ module.exports = {
   resetMocks: true,
   restoreMocks: true,
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1'
+    '^@/(.*)$': '<rootDir>/src/$1',
+    '^@actions/core$': '<rootDir>/__mocks__/@actions-core.ts',
+    '^@actions/github$': '<rootDir>/__mocks__/@actions-github.ts'
   }
 };
