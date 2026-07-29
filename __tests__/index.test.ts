@@ -286,6 +286,28 @@ describe('Branch Detection Action', () => {
       );
     });
 
+    test('excludes plugins configured with local relative paths', async () => {
+      // Setup
+      github.context.ref = 'refs/heads/main';
+      mockReadFile.mockResolvedValueOnce(JSON.stringify({
+        plugins: [
+          '@semantic-release/commit-analyzer',
+          './release-plugins/upstream-dpf-version.cjs',
+          '@semantic-release/release-notes-generator',
+          '@semantic-release/github'
+        ]
+      }));
+
+      // Execute
+      await run();
+
+      // Verify
+      expect(mockSetOutput).toHaveBeenCalledWith(
+        'semantic-release-plugins',
+        '@semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/github'
+      );
+    });
+
     test('includes conventional-changelog packages when presets are used', async () => {
       // Setup
       github.context.ref = 'refs/heads/main';
