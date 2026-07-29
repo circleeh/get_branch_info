@@ -2,7 +2,7 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 import * as yaml from 'js-yaml';
 import { yamlConfig } from './test-configs';
-import { run } from '../src/index';
+import { run } from '../src/main';
 
 // Mock dependencies are provided via Jest moduleNameMapper to local stubs
 jest.mock('fs', () => {
