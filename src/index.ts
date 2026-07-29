@@ -63,13 +63,16 @@ export async function run(): Promise<void> {
 
           // Extract and process plugins
           if (config.plugins) {
+            const isLocalPath = (pluginName: string): boolean =>
+              pluginName.startsWith('./') || pluginName.startsWith('../') || pluginName.startsWith('/');
+
             const plugins = config.plugins.map((plugin: string | [string, object]) => {
               if (typeof plugin === 'string') {
                 return plugin;
               }
               // If it's an array, take the first element which is the plugin name
               return Array.isArray(plugin) ? plugin[0] : '';
-            }).filter(Boolean);
+            }).filter(Boolean).filter((plugin: string) => !isLocalPath(plugin));
 
             // Check for preset in analyzeCommits and generateNotes
             let additionalPackages: string[] = [];
