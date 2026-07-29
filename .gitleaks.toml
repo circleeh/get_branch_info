@@ -1,0 +1,12 @@
+[extend]
+useDefault = true
+
+[[rules]]
+id = "generic-api-key"
+
+  [[rules.allowlists]]
+  description = "Placeholder example token in @actions/core's bundled setSecret() JSDoc comment"
+  condition = "AND"
+  regexTarget = "secret"
+  regexes = ['''abc123xyz456''']
+  paths = ['''^dist/index\.js$''']
