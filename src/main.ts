@@ -33,6 +33,24 @@ export async function run(): Promise<void> {
       'release.config.cjs'
     ];
 
+    // Safe: the argument is the fixed string literal 'require', never user/repo input,
+    // so this evaluates no dynamic or untrusted code - it only retrieves Node's own
+    // ambient `require` function reference.
+    //
+    // eval('require'), not a bare `require(...)` or `createRequire(...)` call: once
+    // tsconfig emits ESM (needed for @octokit type resolution), ncc/webpack statically
+    // detects both of those patterns and neutralizes them at build time - a plain
+    // `require(<dynamic path>)` becomes an always-throwing empty "require context"
+    // module (it can't resolve a consumer repo's config path at this action's own
+    // build time), and `createRequire(...)` gets its entire call expression replaced
+    // with `undefined` regardless of the argument passed. A `require` obtained via
+    // `eval` is invisible to both of these static rewrites - bundlers can't inspect a
+    // string literal's contents - and Node's CJS loader still injects a real `require`
+    // into scope at runtime since dist/index.js has no "type": "module". Do not
+    // replace this with a plain `require()` or `createRequire()` call.
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval, no-eval
+    const dynamicRequire = eval('require') as NodeRequire;
+
     for (const configFile of possibleConfigs) {
       const configPath = path.join(process.cwd(), configFile);
 
@@ -40,7 +58,7 @@ export async function run(): Promise<void> {
         let config;
         if (configFile.endsWith('.js') || configFile.endsWith('.cjs')) {
           // Handle JavaScript config files
-          config = require(configPath);
+          config = dynamicRequire(configPath);
         } else {
           // Handle JSON and YAML config files
           const fileContents = await fs.readFile(configPath, 'utf8');
