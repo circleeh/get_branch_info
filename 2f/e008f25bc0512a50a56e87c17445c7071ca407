@@ -1,0 +1,14 @@
+.github/workflows/semantic-release.yaml
+  h_650407de8f933f 17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "2fe008f25bc0512a50a56e87c17445c7071ca407",
+  "prompts": {},
+  "humans": {
+    "h_650407de8f933f": {
+      "author": "Chris Poupart <chris.poupart@gmail.com>"
+    }
+  }
+}
