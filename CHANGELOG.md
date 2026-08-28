@@ -1,3 +1,10 @@
+## [1.6.5](https://github.com/circleeh/get_branch_info/compare/v1.6.4...v1.6.5) (2026-08-28)
+
+### Bug Fixes
+
+* 📌 pin conventionalcommits plugin to v9 ([2fe008f](https://github.com/circleeh/get_branch_info/commit/2fe008f25bc0512a50a56e87c17445c7071ca407))
+* restore JS/CJS semantic-release config loading broken by ESM build ([e8a0c3b](https://github.com/circleeh/get_branch_info/commit/e8a0c3bc3bd571ce09133bccf921aabf530aa2fc))
+
 ## [1.6.4](https://github.com/circleeh/get_branch_info/compare/v1.6.3...v1.6.4) (2026-07-29)
 
 ## [1.6.3](https://github.com/circleeh/get_branch_info/compare/v1.6.2...v1.6.3) (2026-07-29)
