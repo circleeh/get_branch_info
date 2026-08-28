@@ -1,18 +1,159 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 9778:
-/***/ ((module) => {
+/***/ 6927:
+/***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
 
-function webpackEmptyContext(req) {
-	var e = new Error("Cannot find module '" + req + "'");
-	e.code = 'MODULE_NOT_FOUND';
-	throw e;
+"use strict";
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   e: () => (/* binding */ run)
+/* harmony export */ });
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(6910);
+/* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(157);
+/* harmony import */ var js_yaml__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(3243);
+/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(9896);
+/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__nccwpck_require__.n(fs__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(6928);
+/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__nccwpck_require__.n(path__WEBPACK_IMPORTED_MODULE_4__);
+
+
+
+
+
+async function run() {
+    try {
+        // More explicitly handle PR vs direct push cases
+        const currentBranch = _actions_github__WEBPACK_IMPORTED_MODULE_1__/* .context */ ._.payload.pull_request
+            ? _actions_github__WEBPACK_IMPORTED_MODULE_1__/* .context */ ._.payload.pull_request.head.ref // PR case (equivalent to GITHUB_HEAD_REF)
+            : _actions_github__WEBPACK_IMPORTED_MODULE_1__/* .context */ ._.ref.replace('refs/heads/', ''); // Direct push case (equivalent to GITHUB_REF)
+        // Get the short SHA from GitHub context (more reliable than git commands)
+        // github.context.sha contains the commit SHA that triggered the workflow
+        const shortSha = _actions_github__WEBPACK_IMPORTED_MODULE_1__/* .context */ ._.sha.substring(0, 7);
+        _actions_core__WEBPACK_IMPORTED_MODULE_0__/* .setOutput */ .uH('short-sha', shortSha);
+        _actions_core__WEBPACK_IMPORTED_MODULE_0__/* .debug */ .Yz(`Short SHA: ${shortSha}`);
+        _actions_core__WEBPACK_IMPORTED_MODULE_0__/* .debug */ .Yz(`GitHub Ref: ${_actions_github__WEBPACK_IMPORTED_MODULE_1__/* .context */ ._.ref}`);
+        _actions_core__WEBPACK_IMPORTED_MODULE_0__/* .debug */ .Yz(`Pull Request Head Ref: ${_actions_github__WEBPACK_IMPORTED_MODULE_1__/* .context */ ._.payload.pull_request?.head.ref}`);
+        _actions_core__WEBPACK_IMPORTED_MODULE_0__/* .debug */ .Yz(`Current branch: ${currentBranch}`);
+        // Check all possible .releaserc config files
+        const possibleConfigs = [
+            '.releaserc',
+            '.releaserc.json',
+            '.releaserc.yaml',
+            '.releaserc.yml',
+            '.releaserc.js',
+            '.releaserc.cjs',
+            'release.config.js',
+            'release.config.cjs'
+        ];
+        // Safe: the argument is the fixed string literal 'require', never user/repo input,
+        // so this evaluates no dynamic or untrusted code - it only retrieves Node's own
+        // ambient `require` function reference.
+        //
+        // eval('require'), not a bare `require(...)` or `createRequire(...)` call: once
+        // tsconfig emits ESM (needed for @octokit type resolution), ncc/webpack statically
+        // detects both of those patterns and neutralizes them at build time - a plain
+        // `require(<dynamic path>)` becomes an always-throwing empty "require context"
+        // module (it can't resolve a consumer repo's config path at this action's own
+        // build time), and `createRequire(...)` gets its entire call expression replaced
+        // with `undefined` regardless of the argument passed. A `require` obtained via
+        // `eval` is invisible to both of these static rewrites - bundlers can't inspect a
+        // string literal's contents - and Node's CJS loader still injects a real `require`
+        // into scope at runtime since dist/index.js has no "type": "module". Do not
+        // replace this with a plain `require()` or `createRequire()` call.
+        // eslint-disable-next-line @typescript-eslint/no-implied-eval, no-eval
+        const dynamicRequire = eval('require');
+        for (const configFile of possibleConfigs) {
+            const configPath = path__WEBPACK_IMPORTED_MODULE_4___default().join(process.cwd(), configFile);
+            try {
+                let config;
+                if (configFile.endsWith('.js') || configFile.endsWith('.cjs')) {
+                    // Handle JavaScript config files
+                    config = dynamicRequire(configPath);
+                }
+                else {
+                    // Handle JSON and YAML config files
+                    const fileContents = await fs__WEBPACK_IMPORTED_MODULE_3__.promises.readFile(configPath, 'utf8');
+                    config = configFile.endsWith('.json') ? JSON.parse(fileContents) : js_yaml__WEBPACK_IMPORTED_MODULE_2__/* .load */ .Hh(fileContents);
+                }
+                if (config) {
+                    // Handle tagFormat extraction
+                    let tagFormat = config.tagFormat || 'v${version}';
+                    const versionPlaceholder = '${version}';
+                    const tagFormatParts = tagFormat.split(versionPlaceholder);
+                    const tagFormatPrefix = tagFormatParts[0] || '';
+                    const tagFormatSuffix = tagFormatParts[1] || '';
+                    _actions_core__WEBPACK_IMPORTED_MODULE_0__/* .setOutput */ .uH('tagFormat-prefix', tagFormatPrefix);
+                    _actions_core__WEBPACK_IMPORTED_MODULE_0__/* .setOutput */ .uH('tagFormat-suffix', tagFormatSuffix);
+                    _actions_core__WEBPACK_IMPORTED_MODULE_0__/* .debug */ .Yz(`Tag format prefix: ${tagFormatPrefix}`);
+                    _actions_core__WEBPACK_IMPORTED_MODULE_0__/* .debug */ .Yz(`Tag format suffix: ${tagFormatSuffix}`);
+                    // Extract and process plugins
+                    if (config.plugins) {
+                        const isLocalPath = (pluginName) => pluginName.startsWith('./') || pluginName.startsWith('../') || pluginName.startsWith('/');
+                        const plugins = config.plugins.map((plugin) => {
+                            if (typeof plugin === 'string') {
+                                return plugin;
+                            }
+                            // If it's an array, take the first element which is the plugin name
+                            return Array.isArray(plugin) ? plugin[0] : '';
+                        }).filter(Boolean).filter((plugin) => !isLocalPath(plugin));
+                        // Check for preset in analyzeCommits and generateNotes
+                        let additionalPackages = [];
+                        const checkPreset = (section) => {
+                            if (section?.preset) {
+                                additionalPackages.push(`conventional-changelog-${section.preset}`);
+                            }
+                        };
+                        if (config.analyzeCommits) {
+                            const commitAnalyzers = Array.isArray(config.analyzeCommits)
+                                ? config.analyzeCommits
+                                : [config.analyzeCommits];
+                            commitAnalyzers.forEach((analyzer) => checkPreset(analyzer));
+                        }
+                        if (config.generateNotes) {
+                            const noteGenerators = Array.isArray(config.generateNotes)
+                                ? config.generateNotes
+                                : [config.generateNotes];
+                            noteGenerators.forEach((generator) => checkPreset(generator));
+                        }
+                        const allPackages = [...new Set([...plugins, ...additionalPackages])];
+                        const pluginsList = allPackages.join(' ');
+                        _actions_core__WEBPACK_IMPORTED_MODULE_0__/* .setOutput */ .uH('semantic-release-plugins', pluginsList);
+                        _actions_core__WEBPACK_IMPORTED_MODULE_0__/* .debug */ .Yz(`Semantic Release Plugins: ${pluginsList}`);
+                    }
+                    // Handle release branches check
+                    if (config.branches) {
+                        const releaseBranches = config.branches
+                            .filter(Boolean)
+                            .map((branch) => typeof branch === 'string' ? branch : branch.name)
+                            .filter(Boolean);
+                        const isReleaseBranch = releaseBranches.includes(currentBranch);
+                        _actions_core__WEBPACK_IMPORTED_MODULE_0__/* .setOutput */ .uH('is-release-branch', isReleaseBranch);
+                        _actions_core__WEBPACK_IMPORTED_MODULE_0__/* .debug */ .Yz(`Is release branch: ${isReleaseBranch}`);
+                    }
+                    else {
+                        _actions_core__WEBPACK_IMPORTED_MODULE_0__/* .setOutput */ .uH('is-release-branch', false);
+                    }
+                    return; // Exit after finding and processing the first config file
+                }
+            }
+            catch (error) {
+                // Continue to next config file if this one doesn't exist or can't be read
+                continue;
+            }
+        }
+        // If no valid config was found
+        _actions_core__WEBPACK_IMPORTED_MODULE_0__/* .setOutput */ .uH('is-release-branch', false);
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            _actions_core__WEBPACK_IMPORTED_MODULE_0__/* .setFailed */ .C1(error.message);
+        }
+        else {
+            _actions_core__WEBPACK_IMPORTED_MODULE_0__/* .setFailed */ .C1('An unexpected error occurred');
+        }
+    }
 }
-webpackEmptyContext.keys = () => ([]);
-webpackEmptyContext.resolve = webpackEmptyContext;
-webpackEmptyContext.id = 9778;
-module.exports = webpackEmptyContext;
+
 
 /***/ }),
 
@@ -28967,6 +29108,14 @@ module.exports = require("events");
 
 /***/ }),
 
+/***/ 9896:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("fs");
+
+/***/ }),
+
 /***/ 8611:
 /***/ ((module) => {
 
@@ -29148,6 +29297,22 @@ module.exports = require("node:worker_threads");
 
 "use strict";
 module.exports = require("node:zlib");
+
+/***/ }),
+
+/***/ 857:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("os");
+
+/***/ }),
+
+/***/ 6928:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("path");
 
 /***/ }),
 
@@ -29351,82 +29516,24 @@ module.exports.xL = safeParse
 __webpack_unused_export__ = defaultContentType
 
 
-/***/ })
+/***/ }),
 
-/******/ 	});
-/************************************************************************/
-/******/ 	// The module cache
-/******/ 	var __webpack_module_cache__ = {};
-/******/ 	
-/******/ 	// The require function
-/******/ 	function __nccwpck_require__(moduleId) {
-/******/ 		// Check if module is in cache
-/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
-/******/ 		if (cachedModule !== undefined) {
-/******/ 			return cachedModule.exports;
-/******/ 		}
-/******/ 		// Create a new module (and put it into the cache)
-/******/ 		var module = __webpack_module_cache__[moduleId] = {
-/******/ 			// no module.id needed
-/******/ 			// no module.loaded needed
-/******/ 			exports: {}
-/******/ 		};
-/******/ 	
-/******/ 		// Execute the module function
-/******/ 		var threw = true;
-/******/ 		try {
-/******/ 			__webpack_modules__[moduleId].call(module.exports, module, module.exports, __nccwpck_require__);
-/******/ 			threw = false;
-/******/ 		} finally {
-/******/ 			if(threw) delete __webpack_module_cache__[moduleId];
-/******/ 		}
-/******/ 	
-/******/ 		// Return the exports of the module
-/******/ 		return module.exports;
-/******/ 	}
-/******/ 	
-/************************************************************************/
-/******/ 	/* webpack/runtime/compat get default export */
-/******/ 	(() => {
-/******/ 		// getDefaultExport function for compatibility with non-harmony modules
-/******/ 		__nccwpck_require__.n = (module) => {
-/******/ 			var getter = module && module.__esModule ?
-/******/ 				() => (module['default']) :
-/******/ 				() => (module);
-/******/ 			__nccwpck_require__.d(getter, { a: getter });
-/******/ 			return getter;
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/define property getters */
-/******/ 	(() => {
-/******/ 		// define getter functions for harmony exports
-/******/ 		__nccwpck_require__.d = (exports, definition) => {
-/******/ 			for(var key in definition) {
-/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
-/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 				}
-/******/ 			}
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	(() => {
-/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/compat */
-/******/ 	
-/******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
-/******/ 	
-/************************************************************************/
-var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be in strict mode.
-(() => {
+/***/ 6910:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
+
 "use strict";
 
-;// CONCATENATED MODULE: external "os"
-const external_os_namespaceObject = require("os");
+// EXPORTS
+__nccwpck_require__.d(__webpack_exports__, {
+  Yz: () => (/* binding */ core_debug),
+  C1: () => (/* binding */ setFailed),
+  uH: () => (/* binding */ setOutput)
+});
+
+// UNUSED EXPORTS: ExitCode, addPath, endGroup, error, exportVariable, getBooleanInput, getIDToken, getInput, getMultilineInput, getState, group, info, isDebug, markdownSummary, notice, platform, saveState, setCommandEcho, setSecret, startGroup, summary, toPlatformPath, toPosixPath, toWin32Path, warning
+
+// EXTERNAL MODULE: external "os"
+var external_os_ = __nccwpck_require__(857);
 ;// CONCATENATED MODULE: ./node_modules/@actions/core/lib/utils.js
 // We use any as a valid input type
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -29501,7 +29608,7 @@ function utils_toCommandProperties(annotationProperties) {
  */
 function command_issueCommand(command, properties, message) {
     const cmd = new Command(command, properties, message);
-    process.stdout.write(cmd.toString() + external_os_namespaceObject.EOL);
+    process.stdout.write(cmd.toString() + external_os_.EOL);
 }
 function command_issue(name, message = '') {
     command_issueCommand(name, {}, message);
@@ -29557,8 +29664,8 @@ function escapeProperty(s) {
 //# sourceMappingURL=command.js.map
 ;// CONCATENATED MODULE: external "crypto"
 const external_crypto_namespaceObject = require("crypto");
-;// CONCATENATED MODULE: external "fs"
-const external_fs_namespaceObject = require("fs");
+// EXTERNAL MODULE: external "fs"
+var external_fs_ = __nccwpck_require__(9896);
 ;// CONCATENATED MODULE: ./node_modules/@actions/core/lib/file-command.js
 // For internal use, subject to change.
 // We use any as a valid input type
@@ -29572,10 +29679,10 @@ function file_command_issueFileCommand(command, message) {
     if (!filePath) {
         throw new Error(`Unable to find environment variable for file command ${command}`);
     }
-    if (!external_fs_namespaceObject.existsSync(filePath)) {
+    if (!external_fs_.existsSync(filePath)) {
         throw new Error(`Missing file at path: ${filePath}`);
     }
-    external_fs_namespaceObject.appendFileSync(filePath, `${utils_toCommandValue(message)}${external_os_namespaceObject.EOL}`, {
+    external_fs_.appendFileSync(filePath, `${utils_toCommandValue(message)}${external_os_.EOL}`, {
         encoding: 'utf8'
     });
 }
@@ -29591,12 +29698,11 @@ function file_command_prepareKeyValueMessage(key, value) {
     if (convertedValue.includes(delimiter)) {
         throw new Error(`Unexpected input: value should not contain the delimiter "${delimiter}"`);
     }
-    return `${key}<<${delimiter}${external_os_namespaceObject.EOL}${convertedValue}${external_os_namespaceObject.EOL}${delimiter}`;
+    return `${key}<<${delimiter}${external_os_.EOL}${convertedValue}${external_os_.EOL}${delimiter}`;
 }
 //# sourceMappingURL=file-command.js.map
-;// CONCATENATED MODULE: external "path"
-const external_path_namespaceObject = require("path");
-var external_path_default = /*#__PURE__*/__nccwpck_require__.n(external_path_namespaceObject);
+// EXTERNAL MODULE: external "path"
+var external_path_ = __nccwpck_require__(6928);
 // EXTERNAL MODULE: external "http"
 var external_http_ = __nccwpck_require__(8611);
 // EXTERNAL MODULE: external "https"
@@ -30555,7 +30661,7 @@ var summary_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _
 };
 
 
-const { access, appendFile, writeFile } = external_fs_namespaceObject.promises;
+const { access, appendFile, writeFile } = external_fs_.promises;
 const SUMMARY_ENV_VAR = 'GITHUB_STEP_SUMMARY';
 const SUMMARY_DOCS_URL = 'https://docs.github.com/actions/using-workflows/workflow-commands-for-github-actions#adding-a-job-summary';
 class Summary {
@@ -30578,7 +30684,7 @@ class Summary {
                 throw new Error(`Unable to find environment variable for $${SUMMARY_ENV_VAR}. Check if your runtime environment supports job summaries.`);
             }
             try {
-                yield access(pathFromEnv, external_fs_namespaceObject.constants.R_OK | external_fs_namespaceObject.constants.W_OK);
+                yield access(pathFromEnv, external_fs_.constants.R_OK | external_fs_.constants.W_OK);
             }
             catch (_a) {
                 throw new Error(`Unable to access summary file: '${pathFromEnv}'. Check if the file has correct read/write permissions.`);
@@ -30674,7 +30780,7 @@ class Summary {
      * @returns {Summary} summary instance
      */
     addEOL() {
-        return this.addRaw(external_os_namespaceObject.EOL);
+        return this.addRaw(external_os_.EOL);
     }
     /**
      * Adds an HTML codeblock to the summary buffer
@@ -30878,7 +30984,7 @@ var io_util_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _
 };
 
 
-const { chmod, copyFile, lstat, mkdir, open: io_util_open, readdir, rename, rm, rmdir, stat, symlink, unlink } = external_fs_namespaceObject.promises;
+const { chmod, copyFile, lstat, mkdir, open: io_util_open, readdir, rename, rm, rmdir, stat, symlink, unlink } = external_fs_.promises;
 // export const {open} = 'fs'
 const IS_WINDOWS = process.platform === 'win32';
 /**
@@ -30905,7 +31011,7 @@ function readlink(fsPath) {
 }
 // See https://github.com/nodejs/node/blob/d0153aee367422d0858105abec186da4dff0a0c5/deps/uv/include/uv/win.h#L691
 const UV_FS_O_EXLOCK = 0x10000000;
-const READONLY = external_fs_namespaceObject.constants.O_RDONLY;
+const READONLY = external_fs_.constants.O_RDONLY;
 function exists(fsPath) {
     return io_util_awaiter(this, void 0, void 0, function* () {
         try {
@@ -30963,7 +31069,7 @@ function tryGetExecutablePath(filePath, extensions) {
         if (stats && stats.isFile()) {
             if (IS_WINDOWS) {
                 // on Windows, test for valid extension
-                const upperExt = external_path_namespaceObject.extname(filePath).toUpperCase();
+                const upperExt = external_path_.extname(filePath).toUpperCase();
                 if (extensions.some(validExt => validExt.toUpperCase() === upperExt)) {
                     return filePath;
                 }
@@ -30992,11 +31098,11 @@ function tryGetExecutablePath(filePath, extensions) {
                 if (IS_WINDOWS) {
                     // preserve the case of the actual file (since an extension was appended)
                     try {
-                        const directory = external_path_namespaceObject.dirname(filePath);
-                        const upperName = external_path_namespaceObject.basename(filePath).toUpperCase();
+                        const directory = external_path_.dirname(filePath);
+                        const upperName = external_path_.basename(filePath).toUpperCase();
                         for (const actualName of yield readdir(directory)) {
                             if (upperName === actualName.toUpperCase()) {
-                                filePath = external_path_namespaceObject.join(directory, actualName);
+                                filePath = external_path_.join(directory, actualName);
                                 break;
                             }
                         }
@@ -31216,7 +31322,7 @@ function findInPath(tool) {
         // build the list of extensions to try
         const extensions = [];
         if (IS_WINDOWS && process.env['PATHEXT']) {
-            for (const extension of process.env['PATHEXT'].split(external_path_namespaceObject.delimiter)) {
+            for (const extension of process.env['PATHEXT'].split(external_path_.delimiter)) {
                 if (extension) {
                     extensions.push(extension);
                 }
@@ -31231,7 +31337,7 @@ function findInPath(tool) {
             return [];
         }
         // if any path separators, return empty
-        if (tool.includes(external_path_namespaceObject.sep)) {
+        if (tool.includes(external_path_.sep)) {
             return [];
         }
         // build the list of directories
@@ -31242,7 +31348,7 @@ function findInPath(tool) {
         // across platforms.
         const directories = [];
         if (process.env.PATH) {
-            for (const p of process.env.PATH.split(external_path_namespaceObject.delimiter)) {
+            for (const p of process.env.PATH.split(external_path_.delimiter)) {
                 if (p) {
                     directories.push(p);
                 }
@@ -31251,7 +31357,7 @@ function findInPath(tool) {
         // find all matches
         const matches = [];
         for (const directory of directories) {
-            const filePath = yield tryGetExecutablePath(external_path_namespaceObject.join(directory, tool), extensions);
+            const filePath = yield tryGetExecutablePath(external_path_.join(directory, tool), extensions);
             if (filePath) {
                 matches.push(filePath);
             }
@@ -31398,13 +31504,13 @@ class ToolRunner extends external_events_.EventEmitter {
     _processLineBuffer(data, strBuffer, onLine) {
         try {
             let s = strBuffer + data.toString();
-            let n = s.indexOf(external_os_namespaceObject.EOL);
+            let n = s.indexOf(external_os_.EOL);
             while (n > -1) {
                 const line = s.substring(0, n);
                 onLine(line);
                 // the rest of the string ...
-                s = s.substring(n + external_os_namespaceObject.EOL.length);
-                n = s.indexOf(external_os_namespaceObject.EOL);
+                s = s.substring(n + external_os_.EOL.length);
+                n = s.indexOf(external_os_.EOL);
             }
             return s;
         }
@@ -31682,7 +31788,7 @@ class ToolRunner extends external_events_.EventEmitter {
                 (this.toolPath.includes('/') ||
                     (toolrunner_IS_WINDOWS && this.toolPath.includes('\\')))) {
                 // prefer options.cwd if it is specified, however options.cwd may also need to be rooted
-                this.toolPath = external_path_namespaceObject.resolve(process.cwd(), this.options.cwd || process.cwd(), this.toolPath);
+                this.toolPath = external_path_.resolve(process.cwd(), this.options.cwd || process.cwd(), this.toolPath);
             }
             // if the tool is only a file name, then resolve it from the PATH
             // otherwise verify it exists (add extension on Windows if necessary)
@@ -31695,7 +31801,7 @@ class ToolRunner extends external_events_.EventEmitter {
                 }
                 const optionsNonNull = this._cloneExecOptions(this.options);
                 if (!optionsNonNull.silent && optionsNonNull.outStream) {
-                    optionsNonNull.outStream.write(this._getCommandString(optionsNonNull) + external_os_namespaceObject.EOL);
+                    optionsNonNull.outStream.write(this._getCommandString(optionsNonNull) + external_os_.EOL);
                 }
                 const state = new ExecState(optionsNonNull, this.toolPath);
                 state.on('debug', (message) => {
@@ -32034,8 +32140,8 @@ const getLinuxInfo = () => platform_awaiter(void 0, void 0, void 0, function* ()
         version
     };
 });
-const platform = external_os_namespaceObject.platform();
-const arch = external_os_namespaceObject.arch();
+const platform = external_os_.platform();
+const arch = external_os_.arch();
 const isWindows = platform === 'win32';
 const isMacOS = platform === 'darwin';
 const isLinux = platform === 'linux';
@@ -32216,7 +32322,7 @@ function setOutput(name, value) {
     if (filePath) {
         return file_command_issueFileCommand('OUTPUT', file_command_prepareKeyValueMessage(name, value));
     }
-    process.stdout.write(external_os_namespaceObject.EOL);
+    process.stdout.write(external_os_.EOL);
     command_issueCommand('set-output', { name }, utils_toCommandValue(value));
 }
 /**
@@ -32371,6 +32477,25 @@ function getIDToken(aud) {
  */
 
 //# sourceMappingURL=core.js.map
+
+/***/ }),
+
+/***/ 157:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
+
+"use strict";
+
+// EXPORTS
+__nccwpck_require__.d(__webpack_exports__, {
+  _: () => (/* binding */ github_context)
+});
+
+// UNUSED EXPORTS: getOctokit
+
+// EXTERNAL MODULE: external "fs"
+var external_fs_ = __nccwpck_require__(9896);
+// EXTERNAL MODULE: external "os"
+var external_os_ = __nccwpck_require__(857);
 ;// CONCATENATED MODULE: ./node_modules/@actions/github/lib/context.js
 
 
@@ -32382,12 +32507,12 @@ class Context {
         var _a, _b, _c;
         this.payload = {};
         if (process.env.GITHUB_EVENT_PATH) {
-            if ((0,external_fs_namespaceObject.existsSync)(process.env.GITHUB_EVENT_PATH)) {
-                this.payload = JSON.parse((0,external_fs_namespaceObject.readFileSync)(process.env.GITHUB_EVENT_PATH, { encoding: 'utf8' }));
+            if ((0,external_fs_.existsSync)(process.env.GITHUB_EVENT_PATH)) {
+                this.payload = JSON.parse((0,external_fs_.readFileSync)(process.env.GITHUB_EVENT_PATH, { encoding: 'utf8' }));
             }
             else {
                 const path = process.env.GITHUB_EVENT_PATH;
-                process.stdout.write(`GITHUB_EVENT_PATH ${path} does not exist${external_os_namespaceObject.EOL}`);
+                process.stdout.write(`GITHUB_EVENT_PATH ${path} does not exist${external_os_.EOL}`);
             }
         }
         this.eventName = process.env.GITHUB_EVENT_NAME;
@@ -32426,8 +32551,10 @@ class Context {
 //# sourceMappingURL=context.js.map
 // EXTERNAL MODULE: ./node_modules/@actions/http-client/lib/index.js
 var lib = __nccwpck_require__(4844);
+// EXTERNAL MODULE: ./node_modules/undici/index.js
+var undici = __nccwpck_require__(6752);
 ;// CONCATENATED MODULE: ./node_modules/@actions/github/lib/internal/utils.js
-var utils_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -32457,7 +32584,7 @@ function getProxyAgentDispatcher(destinationUrl) {
 }
 function getProxyFetch(destinationUrl) {
     const httpDispatcher = getProxyAgentDispatcher(destinationUrl);
-    const proxyFetch = (url, opts) => utils_awaiter(this, void 0, void 0, function* () {
+    const proxyFetch = (url, opts) => __awaiter(this, void 0, void 0, function* () {
         return (0,undici.fetch)(url, Object.assign(Object.assign({}, opts), { dispatcher: httpDispatcher }));
     });
     return proxyFetch;
@@ -32661,7 +32788,7 @@ var DEFAULTS = {
 };
 
 // pkg/dist-src/util/lowercase-keys.js
-function dist_bundle_lowercaseKeys(object) {
+function lowercaseKeys(object) {
   if (!object) {
     return {};
   }
@@ -32713,7 +32840,7 @@ function merge(defaults, route, options) {
   } else {
     options = Object.assign({}, route);
   }
-  options.headers = dist_bundle_lowercaseKeys(options.headers);
+  options.headers = lowercaseKeys(options.headers);
   removeUndefinedProperties(options);
   removeUndefinedProperties(options.headers);
   const mergedOptions = mergeDeep(defaults || {}, options);
@@ -36626,7 +36753,17 @@ function getOctokit(token, options, ...additionalPlugins) {
     return new GitHubWithPlugins(getOctokitOptions(token, options));
 }
 //# sourceMappingURL=github.js.map
-;// CONCATENATED MODULE: ./node_modules/js-yaml/dist/js-yaml.mjs
+
+/***/ }),
+
+/***/ 3243:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
+
+"use strict";
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   Hh: () => (/* binding */ load)
+/* harmony export */ });
+/* unused harmony exports CORE_SCHEMA, DEFAULT_SCHEMA, FAILSAFE_SCHEMA, JSON_SCHEMA, Schema, Type, YAMLException, default, dump, loadAll, safeDump, safeLoad, safeLoadAll, types */
 function getDefaultExportFromCjs(x) {
   return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, "default") ? x["default"] : x;
 }
@@ -37084,10 +37221,10 @@ function requireBool() {
   });
   return bool;
 }
-var js_yaml_int;
+var int;
 var hasRequiredInt;
 function requireInt() {
-  if (hasRequiredInt) return js_yaml_int;
+  if (hasRequiredInt) return int;
   hasRequiredInt = 1;
   const common2 = requireCommon();
   const Type2 = requireType();
@@ -37171,7 +37308,7 @@ function requireInt() {
   function isInteger(object) {
     return Object.prototype.toString.call(object) === "[object Number]" && (object % 1 === 0 && !common2.isNegativeZero(object));
   }
-  js_yaml_int = new Type2("tag:yaml.org,2002:int", {
+  int = new Type2("tag:yaml.org,2002:int", {
     kind: "scalar",
     resolve: resolveYamlInteger,
     construct: constructYamlInteger,
@@ -37198,12 +37335,12 @@ function requireInt() {
       hexadecimal: [16, "hex"]
     }
   });
-  return js_yaml_int;
+  return int;
 }
-var js_yaml_float;
+var float;
 var hasRequiredFloat;
 function requireFloat() {
-  if (hasRequiredFloat) return js_yaml_float;
+  if (hasRequiredFloat) return float;
   hasRequiredFloat = 1;
   const common2 = requireCommon();
   const Type2 = requireType();
@@ -37275,7 +37412,7 @@ function requireFloat() {
   function isFloat(object) {
     return Object.prototype.toString.call(object) === "[object Number]" && (object % 1 !== 0 || common2.isNegativeZero(object));
   }
-  js_yaml_float = new Type2("tag:yaml.org,2002:float", {
+  float = new Type2("tag:yaml.org,2002:float", {
     kind: "scalar",
     resolve: resolveYamlFloat,
     construct: constructYamlFloat,
@@ -37283,7 +37420,7 @@ function requireFloat() {
     represent: representYamlFloat,
     defaultStyle: "lowercase"
   });
-  return js_yaml_float;
+  return float;
 }
 var json;
 var hasRequiredJson;
@@ -37370,20 +37507,20 @@ function requireTimestamp() {
   });
   return timestamp;
 }
-var js_yaml_merge;
+var merge;
 var hasRequiredMerge;
 function requireMerge() {
-  if (hasRequiredMerge) return js_yaml_merge;
+  if (hasRequiredMerge) return merge;
   hasRequiredMerge = 1;
   const Type2 = requireType();
   function resolveYamlMerge(data) {
     return data === "<<" || data === null;
   }
-  js_yaml_merge = new Type2("tag:yaml.org,2002:merge", {
+  merge = new Type2("tag:yaml.org,2002:merge", {
     kind: "scalar",
     resolve: resolveYamlMerge
   });
-  return js_yaml_merge;
+  return merge;
 }
 var binary;
 var hasRequiredBinary;
@@ -39686,132 +39823,95 @@ const {
 
 //# sourceMappingURL=js-yaml.mjs.map
 
-;// CONCATENATED MODULE: ./dist/src/main.js
 
+/***/ })
 
+/******/ 	});
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __nccwpck_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		var threw = true;
+/******/ 		try {
+/******/ 			__webpack_modules__[moduleId].call(module.exports, module, module.exports, __nccwpck_require__);
+/******/ 			threw = false;
+/******/ 		} finally {
+/******/ 			if(threw) delete __webpack_module_cache__[moduleId];
+/******/ 		}
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/compat get default export */
+/******/ 	(() => {
+/******/ 		// getDefaultExport function for compatibility with non-harmony modules
+/******/ 		__nccwpck_require__.n = (module) => {
+/******/ 			var getter = module && module.__esModule ?
+/******/ 				() => (module['default']) :
+/******/ 				() => (module);
+/******/ 			__nccwpck_require__.d(getter, { a: getter });
+/******/ 			return getter;
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__nccwpck_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__nccwpck_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/compat */
+/******/ 	
+/******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
+/******/ 	
+/************************************************************************/
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+(() => {
+"use strict";
+__nccwpck_require__.r(__webpack_exports__);
+/* harmony import */ var _main__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(6927);
 
-
-
-async function run() {
-    try {
-        // More explicitly handle PR vs direct push cases
-        const currentBranch = github_context.payload.pull_request
-            ? github_context.payload.pull_request.head.ref // PR case (equivalent to GITHUB_HEAD_REF)
-            : github_context.ref.replace('refs/heads/', ''); // Direct push case (equivalent to GITHUB_REF)
-        // Get the short SHA from GitHub context (more reliable than git commands)
-        // github.context.sha contains the commit SHA that triggered the workflow
-        const shortSha = github_context.sha.substring(0, 7);
-        setOutput('short-sha', shortSha);
-        core_debug(`Short SHA: ${shortSha}`);
-        core_debug(`GitHub Ref: ${github_context.ref}`);
-        core_debug(`Pull Request Head Ref: ${github_context.payload.pull_request?.head.ref}`);
-        core_debug(`Current branch: ${currentBranch}`);
-        // Check all possible .releaserc config files
-        const possibleConfigs = [
-            '.releaserc',
-            '.releaserc.json',
-            '.releaserc.yaml',
-            '.releaserc.yml',
-            '.releaserc.js',
-            '.releaserc.cjs',
-            'release.config.js',
-            'release.config.cjs'
-        ];
-        for (const configFile of possibleConfigs) {
-            const configPath = external_path_default().join(process.cwd(), configFile);
-            try {
-                let config;
-                if (configFile.endsWith('.js') || configFile.endsWith('.cjs')) {
-                    // Handle JavaScript config files
-                    config = __nccwpck_require__(9778)(configPath);
-                }
-                else {
-                    // Handle JSON and YAML config files
-                    const fileContents = await external_fs_namespaceObject.promises.readFile(configPath, 'utf8');
-                    config = configFile.endsWith('.json') ? JSON.parse(fileContents) : load(fileContents);
-                }
-                if (config) {
-                    // Handle tagFormat extraction
-                    let tagFormat = config.tagFormat || 'v${version}';
-                    const versionPlaceholder = '${version}';
-                    const tagFormatParts = tagFormat.split(versionPlaceholder);
-                    const tagFormatPrefix = tagFormatParts[0] || '';
-                    const tagFormatSuffix = tagFormatParts[1] || '';
-                    setOutput('tagFormat-prefix', tagFormatPrefix);
-                    setOutput('tagFormat-suffix', tagFormatSuffix);
-                    core_debug(`Tag format prefix: ${tagFormatPrefix}`);
-                    core_debug(`Tag format suffix: ${tagFormatSuffix}`);
-                    // Extract and process plugins
-                    if (config.plugins) {
-                        const isLocalPath = (pluginName) => pluginName.startsWith('./') || pluginName.startsWith('../') || pluginName.startsWith('/');
-                        const plugins = config.plugins.map((plugin) => {
-                            if (typeof plugin === 'string') {
-                                return plugin;
-                            }
-                            // If it's an array, take the first element which is the plugin name
-                            return Array.isArray(plugin) ? plugin[0] : '';
-                        }).filter(Boolean).filter((plugin) => !isLocalPath(plugin));
-                        // Check for preset in analyzeCommits and generateNotes
-                        let additionalPackages = [];
-                        const checkPreset = (section) => {
-                            if (section?.preset) {
-                                additionalPackages.push(`conventional-changelog-${section.preset}`);
-                            }
-                        };
-                        if (config.analyzeCommits) {
-                            const commitAnalyzers = Array.isArray(config.analyzeCommits)
-                                ? config.analyzeCommits
-                                : [config.analyzeCommits];
-                            commitAnalyzers.forEach((analyzer) => checkPreset(analyzer));
-                        }
-                        if (config.generateNotes) {
-                            const noteGenerators = Array.isArray(config.generateNotes)
-                                ? config.generateNotes
-                                : [config.generateNotes];
-                            noteGenerators.forEach((generator) => checkPreset(generator));
-                        }
-                        const allPackages = [...new Set([...plugins, ...additionalPackages])];
-                        const pluginsList = allPackages.join(' ');
-                        setOutput('semantic-release-plugins', pluginsList);
-                        core_debug(`Semantic Release Plugins: ${pluginsList}`);
-                    }
-                    // Handle release branches check
-                    if (config.branches) {
-                        const releaseBranches = config.branches
-                            .filter(Boolean)
-                            .map((branch) => typeof branch === 'string' ? branch : branch.name)
-                            .filter(Boolean);
-                        const isReleaseBranch = releaseBranches.includes(currentBranch);
-                        setOutput('is-release-branch', isReleaseBranch);
-                        core_debug(`Is release branch: ${isReleaseBranch}`);
-                    }
-                    else {
-                        setOutput('is-release-branch', false);
-                    }
-                    return; // Exit after finding and processing the first config file
-                }
-            }
-            catch (error) {
-                // Continue to next config file if this one doesn't exist or can't be read
-                continue;
-            }
-        }
-        // If no valid config was found
-        setOutput('is-release-branch', false);
-    }
-    catch (error) {
-        if (error instanceof Error) {
-            setFailed(error.message);
-        }
-        else {
-            setFailed('An unexpected error occurred');
-        }
-    }
-}
-
-;// CONCATENATED MODULE: ./dist/src/index.js
-
-run();
+(0,_main__WEBPACK_IMPORTED_MODULE_0__/* .run */ .e)();
 
 })();
 
