@@ -1,0 +1,28 @@
+src/main.ts
+  s_177c86fecaa340::t_e6289ea7197af3 40-52
+  s_177c86fecaa340::t_adb7b604ee26d1 36-39
+  s_177c86fecaa340::t_6315bfe024503f 53
+  s_177c86fecaa340::t_da218378849925 61
+dist/index.js
+  s_177c86fecaa340::t_df7ac8c5c9c084 4-20,22-154,156,29111-29118,29303-29318,29519-29522,29526-29536,29611,29667-29668,29682,29685,29701,29704-29705,30664,30687,30783,30987,31014,31072,31101-31102,31105,31325,31340,31351,31360,31507,31512-31513,31791,31804,32143-32144,32325,32480-32498,32510-32511,32515,32554-32555,32557,32587,32791,32843,36756-36766,37224,37227,37311,37338,37340,37343,37415,37423,37510,37513,37519,37523,39827,39829-39912,39914
+__tests__/dist-bundle.test.ts
+  s_177c86fecaa340::t_1a64d54d13999c 1-112
+__tests__/config-loading.test.ts
+  s_177c86fecaa340::t_b0dd578bb19e06 1-83
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "e8a0c3bc3bd571ce09133bccf921aabf530aa2fc",
+  "prompts": {},
+  "sessions": {
+    "s_177c86fecaa340": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "65ca7e6c-993d-40f5-aca4-13addf332d72",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Chris Poupart <chris.poupart@gmail.com>"
+    }
+  }
+}
