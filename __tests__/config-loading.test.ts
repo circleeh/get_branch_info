@@ -80,4 +80,51 @@ describe('Config loading (source-level, real filesystem)', () => {
       '@semantic-release/commit-analyzer @semantic-release/github'
     );
   });
+
+  test('tagFormat from config file is used when tag-format input is not set', async () => {
+    await fs.writeFile(
+      path.join(tmpDir, '.releaserc.yaml'),
+      "branches:\n" +
+      "  - main\n" +
+      "tagFormat: \"custom-${version}-tag\"\n"
+    );
+
+    await run();
+
+    expect(core.setOutput).toHaveBeenCalledWith('tagFormat-prefix', 'custom-');
+    expect(core.setOutput).toHaveBeenCalledWith('tagFormat-suffix', '-tag');
+  });
+
+  test('tag-format input overrides tagFormat from a real .releaserc.yaml file', async () => {
+    (core.getInput as jest.Mock).mockReturnValue('2.337.0-dpf.${version}');
+
+    await fs.writeFile(
+      path.join(tmpDir, '.releaserc.yaml'),
+      "branches:\n" +
+      "  - main\n" +
+      "tagFormat: \"custom-${version}-tag\"\n"
+    );
+
+    await run();
+
+    expect(core.setOutput).toHaveBeenCalledWith('tagFormat-prefix', '2.337.0-dpf.');
+    expect(core.setOutput).toHaveBeenCalledWith('tagFormat-suffix', '');
+  });
+
+  test('tag-format input overrides tagFormat from a real .releaserc.js file', async () => {
+    (core.getInput as jest.Mock).mockReturnValue('2.337.0-dpf.${version}');
+
+    await fs.writeFile(
+      path.join(tmpDir, '.releaserc.js'),
+      "module.exports = {\n" +
+      "  branches: ['main'],\n" +
+      "  tagFormat: 'custom-${version}-tag'\n" +
+      "};\n"
+    );
+
+    await run();
+
+    expect(core.setOutput).toHaveBeenCalledWith('tagFormat-prefix', '2.337.0-dpf.');
+    expect(core.setOutput).toHaveBeenCalledWith('tagFormat-suffix', '');
+  });
 });

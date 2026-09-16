@@ -5,6 +5,7 @@ branch in semantic-release configuration.
 
 - [Features](#features)
 - [Usage](#usage)
+- [Inputs](#inputs)
 - [Outputs](#outputs)
 - [Configuration](#configuration)
 - [Examples](#examples)
@@ -36,6 +37,12 @@ Add this action to your workflow:
   run: echo "This is running on a release branch"
 ```
 
+## Inputs
+
+| Input        | Description                                                                                                                        | Required | Default |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------- | -------- | ------- |
+| `tag-format` | Optional override for the resolved `tagFormat` (e.g. `2.337.0-dpf.${version}`). Takes precedence over the config file's own `tagFormat` when set. | No       | `""`    |
+
 ## Outputs
 
 | Output                     | Description                                                                |
@@ -45,6 +52,10 @@ Add this action to your workflow:
 | `tagFormat-suffix`         | The suffix of the tag format (everything after `${version}`)               |
 | `semantic-release-plugins` | Space-separated list of semantic-release plugins configured in the project |
 | `short-sha`                | Short version of the current commit SHA (7 characters)                     |
+
+`tagFormat-prefix`/`tagFormat-suffix` are derived from the `tag-format` input
+when set; otherwise they fall back to the config file's own `tagFormat` (see
+[Inputs](#inputs)).
 
 For example, with `tagFormat: "release-${version}-stable"`:
 

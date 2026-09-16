@@ -1,5 +1,10 @@
 name: 'Get Release Branch Info'
 description: 'Determines if the current branch is configured as a release branch in semantic-release configuration'
+inputs:
+  tag-format:
+    description: "Optional override for the resolved tagFormat (e.g. '2.337.0-dpf.${version}'). Takes precedence over the config file's own tagFormat when set."
+    required: false
+    default: ""
 outputs:
   is-release-branch:
     description: 'Boolean indicating if current branch is a release branch'

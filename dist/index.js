@@ -34,6 +34,7 @@ async function run() {
         _actions_core__WEBPACK_IMPORTED_MODULE_0__/* .debug */ .Yz(`GitHub Ref: ${_actions_github__WEBPACK_IMPORTED_MODULE_1__/* .context */ ._.ref}`);
         _actions_core__WEBPACK_IMPORTED_MODULE_0__/* .debug */ .Yz(`Pull Request Head Ref: ${_actions_github__WEBPACK_IMPORTED_MODULE_1__/* .context */ ._.payload.pull_request?.head.ref}`);
         _actions_core__WEBPACK_IMPORTED_MODULE_0__/* .debug */ .Yz(`Current branch: ${currentBranch}`);
+        const tagFormatOverride = _actions_core__WEBPACK_IMPORTED_MODULE_0__/* .getInput */ .V4('tag-format');
         // Check all possible .releaserc config files
         const possibleConfigs = [
             '.releaserc',
@@ -77,7 +78,7 @@ async function run() {
                 }
                 if (config) {
                     // Handle tagFormat extraction
-                    let tagFormat = config.tagFormat || 'v${version}';
+                    let tagFormat = tagFormatOverride || config.tagFormat || 'v${version}';
                     const versionPlaceholder = '${version}';
                     const tagFormatParts = tagFormat.split(versionPlaceholder);
                     const tagFormatPrefix = tagFormatParts[0] || '';
@@ -29526,11 +29527,12 @@ __webpack_unused_export__ = defaultContentType
 // EXPORTS
 __nccwpck_require__.d(__webpack_exports__, {
   Yz: () => (/* binding */ core_debug),
+  V4: () => (/* binding */ getInput),
   C1: () => (/* binding */ setFailed),
   uH: () => (/* binding */ setOutput)
 });
 
-// UNUSED EXPORTS: ExitCode, addPath, endGroup, error, exportVariable, getBooleanInput, getIDToken, getInput, getMultilineInput, getState, group, info, isDebug, markdownSummary, notice, platform, saveState, setCommandEcho, setSecret, startGroup, summary, toPlatformPath, toPosixPath, toWin32Path, warning
+// UNUSED EXPORTS: ExitCode, addPath, endGroup, error, exportVariable, getBooleanInput, getIDToken, getMultilineInput, getState, group, info, isDebug, markdownSummary, notice, platform, saveState, setCommandEcho, setSecret, startGroup, summary, toPlatformPath, toPosixPath, toWin32Path, warning
 
 // EXTERNAL MODULE: external "os"
 var external_os_ = __nccwpck_require__(857);
