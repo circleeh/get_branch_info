@@ -1,0 +1,32 @@
+action.yml
+  s_cfe2ff8022251a::t_599acb2aa42f0d 3-7
+__mocks__/@actions-core.ts
+  s_cfe2ff8022251a::t_891ba99553f0f7 7
+README.md
+  s_cfe2ff8022251a::t_d672b5b4630d5e 8
+  s_cfe2ff8022251a::t_4a9c7ea136f6f3 40-45,56-58
+  s_cfe2ff8022251a::t_22f09dbf273e93 59
+src/main.ts
+  s_cfe2ff8022251a::t_dd8f3c61e5175e 72
+  s_cfe2ff8022251a::t_901b4e493803f5 24-25
+__tests__/config-loading.test.ts
+  s_cfe2ff8022251a::t_d3ed7c4842f8b6 83-129
+dist/index.js
+  s_cfe2ff8022251a::t_9ce717addb234a 37,81,29530,29535
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "e8a9e86274eacf1921849d67637f43d6a1b5322f",
+  "prompts": {},
+  "sessions": {
+    "s_cfe2ff8022251a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f9bd4572-13d5-474e-af3b-a595c60ccf04",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Chris Poupart <chris.poupart@gmail.com>"
+    }
+  }
+}
