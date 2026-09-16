@@ -21,6 +21,8 @@ export async function run(): Promise<void> {
     core.debug(`Pull Request Head Ref: ${github.context.payload.pull_request?.head.ref}`);
     core.debug(`Current branch: ${currentBranch}`);
 
+    const tagFormatOverride = core.getInput('tag-format');
+
     // Check all possible .releaserc config files
     const possibleConfigs = [
       '.releaserc',
@@ -67,7 +69,7 @@ export async function run(): Promise<void> {
 
         if (config) {
           // Handle tagFormat extraction
-          let tagFormat = config.tagFormat || 'v${version}';
+          let tagFormat = tagFormatOverride || config.tagFormat || 'v${version}';
           const versionPlaceholder = '${version}';
 
           const tagFormatParts = tagFormat.split(versionPlaceholder);
