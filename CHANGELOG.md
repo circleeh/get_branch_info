@@ -1,3 +1,5 @@
+## [1.7.1](https://github.com/circleeh/get_branch_info/compare/v1.7.0...v1.7.1) (2026-09-16)
+
 ## [1.7.0](https://github.com/circleeh/get_branch_info/compare/v1.6.5...v1.7.0) (2026-09-16)
 
 ### Features
