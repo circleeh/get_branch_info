@@ -1,3 +1,9 @@
+## [1.7.0](https://github.com/circleeh/get_branch_info/compare/v1.6.5...v1.7.0) (2026-09-16)
+
+### Features
+
+* **action:** ✨ add tag-format input to override resolved tagFormat ([e8a9e86](https://github.com/circleeh/get_branch_info/commit/e8a9e86274eacf1921849d67637f43d6a1b5322f))
+
 ## [1.6.5](https://github.com/circleeh/get_branch_info/compare/v1.6.4...v1.6.5) (2026-08-28)
 
 ### Bug Fixes
