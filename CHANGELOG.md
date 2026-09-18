@@ -1,3 +1,9 @@
+## [1.7.3](https://github.com/circleeh/get_branch_info/compare/v1.7.2...v1.7.3) (2026-09-18)
+
+### Bug Fixes
+
+* recognize object-form plugin declarations in .releaserc parsing ([7625801](https://github.com/circleeh/get_branch_info/commit/7625801a237e6dfc6747f5bf31127df4bd77353f))
+
 ## [1.7.2](https://github.com/circleeh/get_branch_info/compare/v1.7.1...v1.7.2) (2026-09-16)
 
 ## [1.7.1](https://github.com/circleeh/get_branch_info/compare/v1.7.0...v1.7.1) (2026-09-16)
