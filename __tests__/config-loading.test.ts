@@ -81,6 +81,27 @@ describe('Config loading (source-level, real filesystem)', () => {
     );
   });
 
+  test('loads plugins declared in the { path, ...options } object form from a real .releaserc.yaml file', async () => {
+    await fs.writeFile(
+      path.join(tmpDir, '.releaserc.yaml'),
+      "branches:\n" +
+      "  - main\n" +
+      "plugins:\n" +
+      "  - \"@semantic-release/commit-analyzer\"\n" +
+      "  - path: \"semantic-release-replace-plugin\"\n" +
+      "    replacements: []\n" +
+      "  - path: \"@semantic-release/git\"\n" +
+      "    assets: [\"CHANGELOG.md\"]\n"
+    );
+
+    await run();
+
+    expect(core.setOutput).toHaveBeenCalledWith(
+      'semantic-release-plugins',
+      '@semantic-release/commit-analyzer semantic-release-replace-plugin @semantic-release/git'
+    );
+  });
+
   test('tagFormat from config file is used when tag-format input is not set', async () => {
     await fs.writeFile(
       path.join(tmpDir, '.releaserc.yaml'),
