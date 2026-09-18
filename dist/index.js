@@ -94,8 +94,12 @@ async function run() {
                             if (typeof plugin === 'string') {
                                 return plugin;
                             }
-                            // If it's an array, take the first element which is the plugin name
-                            return Array.isArray(plugin) ? plugin[0] : '';
+                            if (Array.isArray(plugin)) {
+                                // Tuple form: take the first element as the plugin name
+                                return plugin[0];
+                            }
+                            // Object form: { path: 'plugin-name', ...options }
+                            return plugin && 'path' in plugin ? plugin.path : '';
                         }).filter(Boolean).filter((plugin) => !isLocalPath(plugin));
                         // Check for preset in analyzeCommits and generateNotes
                         let additionalPackages = [];
